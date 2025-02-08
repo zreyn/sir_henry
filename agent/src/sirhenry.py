@@ -13,7 +13,7 @@ API_KEY = getenv("OPENAI_API_KEY")
 model = OpenAIModel("gpt-4o")
 
 
-def setup_sir_henry():
+def setup_sir_henry(text_to_speech=False):
     agent = Agent(
         model=model,
         system_prompt=(
@@ -23,17 +23,19 @@ def setup_sir_henry():
         ),
     )
 
-    tts_engine = pyttsx3.init()
-    tts_engine.setProperty("rate", 150)
-    tts_engine.setProperty("volume", 1.0)
-    # tts_engine.setProperty("voice", "com.apple.speech.synthesis.voice.Bahh") # shaky, gollum voice
-    # tts_engine.setProperty("voice", "com.apple.speech.synthesis.voice.Whisper") # creepy whisper
-    # tts_engine.setProperty("voice", "com.apple.eloquence.en-US.Rocko") # generic war games voice
-    # tts_engine.setProperty("voice", "com.apple.speech.synthesis.voice.Albert") # creepy, strained voice
-    # tts_engine.setProperty("voice", "com.apple.speech.synthesis.voice.Boing") # robot goblin
-    # tts_engine.setProperty("voice", "com.apple.speech.synthesis.voice.Bubbles") # sounds underwater
-    # tts_engine.setProperty("voice", "com.apple.speech.synthesis.voice.Cellos") # ominous cello singing
-    tts_engine.setProperty("voice", "com.apple.speech.synthesis.voice.Deranged") # shaky, crazy voice
+    tts_engine = None
+    if text_to_speech:
+        tts_engine = pyttsx3.init()
+        tts_engine.setProperty("rate", 150)
+        tts_engine.setProperty("volume", 1.0)
+        # tts_engine.setProperty("voice", "com.apple.speech.synthesis.voice.Bahh") # shaky, gollum voice
+        # tts_engine.setProperty("voice", "com.apple.speech.synthesis.voice.Whisper") # creepy whisper
+        # tts_engine.setProperty("voice", "com.apple.eloquence.en-US.Rocko") # generic war games voice
+        # tts_engine.setProperty("voice", "com.apple.speech.synthesis.voice.Albert") # creepy, strained voice
+        # tts_engine.setProperty("voice", "com.apple.speech.synthesis.voice.Boing") # robot goblin
+        # tts_engine.setProperty("voice", "com.apple.speech.synthesis.voice.Bubbles") # sounds underwater
+        # tts_engine.setProperty("voice", "com.apple.speech.synthesis.voice.Cellos") # ominous cello singing
+        tts_engine.setProperty("voice", "com.apple.speech.synthesis.voice.Deranged") # shaky, crazy voice
 
     return agent, tts_engine
 
