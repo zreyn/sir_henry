@@ -1,0 +1,719 @@
+Current Voice:
+com.apple.voice.compact.en-US.Samantha
+
+Available Voices:
+ID: com.apple.speech.synthesis.voice.Albert
+Name: Albert
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.voice.compact.it-IT.Alice
+Name: Alice
+Languages: ['it_IT']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.sv-SE.Alva
+Name: Alva
+Languages: ['sv_SE']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.fr-CA.Amelie
+Name: Amélie
+Languages: ['fr_CA']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.ms-MY.Amira
+Name: Amira
+Languages: ['ms_MY']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.de-DE.Anna
+Name: Anna
+Languages: ['de_DE']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.speech.synthesis.voice.BadNews
+Name: Bad News
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.speech.synthesis.voice.Bahh
+Name: Bahh
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.speech.synthesis.voice.Bells
+Name: Bells
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.speech.synthesis.voice.Boing
+Name: Boing
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.speech.synthesis.voice.Bubbles
+Name: Bubbles
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.voice.compact.he-IL.Carmit
+Name: Carmit
+Languages: ['he_IL']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.speech.synthesis.voice.Cellos
+Name: Cellos
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.voice.compact.id-ID.Damayanti
+Name: Damayanti
+Languages: ['id_ID']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.en-GB.Daniel
+Name: Daniel
+Languages: ['en_GB']
+Gender: VoiceGenderMale
+-----
+ID: com.apple.voice.compact.bg-BG.Daria
+Name: Daria
+Languages: ['bg_BG']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.speech.synthesis.voice.Deranged
+Name: Wobble
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.de-DE.Eddy
+Name: Eddy (German (Germany))
+Languages: ['de_DE']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.en-GB.Eddy
+Name: Eddy (English (UK))
+Languages: ['en_GB']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.en-US.Eddy
+Name: Eddy (English (US))
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.es-ES.Eddy
+Name: Eddy (Spanish (Spain))
+Languages: ['es_ES']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.es-MX.Eddy
+Name: Eddy (Spanish (Mexico))
+Languages: ['es_MX']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.fi-FI.Eddy
+Name: Eddy (Finnish (Finland))
+Languages: ['fi_FI']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.fr-CA.Eddy
+Name: Eddy (French (Canada))
+Languages: ['fr_CA']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.fr-FR.Eddy
+Name: Eddy (French (France))
+Languages: ['fr_FR']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.it-IT.Eddy
+Name: Eddy (Italian (Italy))
+Languages: ['it_IT']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.pt-BR.Eddy
+Name: Eddy (Portuguese (Brazil))
+Languages: ['pt_BR']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.voice.compact.nl-BE.Ellen
+Name: Ellen
+Languages: ['nl_BE']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.eloquence.de-DE.Flo
+Name: Flo (German (Germany))
+Languages: ['de_DE']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.en-GB.Flo
+Name: Flo (English (UK))
+Languages: ['en_GB']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.en-US.Flo
+Name: Flo (English (US))
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.es-ES.Flo
+Name: Flo (Spanish (Spain))
+Languages: ['es_ES']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.es-MX.Flo
+Name: Flo (Spanish (Mexico))
+Languages: ['es_MX']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.fi-FI.Flo
+Name: Flo (Finnish (Finland))
+Languages: ['fi_FI']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.fr-CA.Flo
+Name: Flo (French (Canada))
+Languages: ['fr_CA']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.fr-FR.Flo
+Name: Flo (French (France))
+Languages: ['fr_FR']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.it-IT.Flo
+Name: Flo (Italian (Italy))
+Languages: ['it_IT']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.pt-BR.Flo
+Name: Flo (Portuguese (Brazil))
+Languages: ['pt_BR']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.speech.synthesis.voice.Fred
+Name: Fred
+Languages: ['en_US']
+Gender: VoiceGenderMale
+-----
+ID: com.apple.speech.synthesis.voice.GoodNews
+Name: Good News
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.de-DE.Grandma
+Name: Grandma (German (Germany))
+Languages: ['de_DE']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.en-GB.Grandma
+Name: Grandma (English (UK))
+Languages: ['en_GB']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.en-US.Grandma
+Name: Grandma (English (US))
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.es-ES.Grandma
+Name: Grandma (Spanish (Spain))
+Languages: ['es_ES']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.es-MX.Grandma
+Name: Grandma (Spanish (Mexico))
+Languages: ['es_MX']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.fi-FI.Grandma
+Name: Grandma (Finnish (Finland))
+Languages: ['fi_FI']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.fr-CA.Grandma
+Name: Grandma (French (Canada))
+Languages: ['fr_CA']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.fr-FR.Grandma
+Name: Grandma (French (France))
+Languages: ['fr_FR']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.it-IT.Grandma
+Name: Grandma (Italian (Italy))
+Languages: ['it_IT']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.pt-BR.Grandma
+Name: Grandma (Portuguese (Brazil))
+Languages: ['pt_BR']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.de-DE.Grandpa
+Name: Grandpa (German (Germany))
+Languages: ['de_DE']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.en-GB.Grandpa
+Name: Grandpa (English (UK))
+Languages: ['en_GB']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.en-US.Grandpa
+Name: Grandpa (English (US))
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.es-ES.Grandpa
+Name: Grandpa (Spanish (Spain))
+Languages: ['es_ES']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.es-MX.Grandpa
+Name: Grandpa (Spanish (Mexico))
+Languages: ['es_MX']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.fi-FI.Grandpa
+Name: Grandpa (Finnish (Finland))
+Languages: ['fi_FI']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.fr-CA.Grandpa
+Name: Grandpa (French (Canada))
+Languages: ['fr_CA']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.fr-FR.Grandpa
+Name: Grandpa (French (France))
+Languages: ['fr_FR']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.it-IT.Grandpa
+Name: Grandpa (Italian (Italy))
+Languages: ['it_IT']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.pt-BR.Grandpa
+Name: Grandpa (Portuguese (Brazil))
+Languages: ['pt_BR']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.speech.synthesis.voice.Hysterical
+Name: Jester
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.voice.compact.ro-RO.Ioana
+Name: Ioana
+Languages: ['ro_RO']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.eloquence.fr-FR.Jacques
+Name: Jacques
+Languages: ['fr_FR']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.voice.compact.pt-PT.Joana
+Name: Joana
+Languages: ['pt_PT']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.speech.synthesis.voice.Junior
+Name: Junior
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.voice.compact.th-TH.Kanya
+Name: Kanya
+Languages: ['th_TH']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.en-AU.Karen
+Name: Karen
+Languages: ['en_AU']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.speech.synthesis.voice.Kathy
+Name: Kathy
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.voice.compact.ja-JP.Kyoko
+Name: Kyoko
+Languages: ['ja_JP']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.hr-HR.Lana
+Name: Lana
+Languages: ['hr_HR']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.sk-SK.Laura
+Name: Laura
+Languages: ['sk_SK']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.hi-IN.Lekha
+Name: Lekha
+Languages: ['hi_IN']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.uk-UA.Lesya
+Name: Lesya
+Languages: ['uk_UA']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.vi-VN.Linh
+Name: Linh
+Languages: ['vi_VN']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.pt-BR.Luciana
+Name: Luciana
+Languages: ['pt_BR']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.ar-001.Maged
+Name: Majed
+Languages: ['ar_001']
+Gender: VoiceGenderMale
+-----
+ID: com.apple.voice.compact.hu-HU.Mariska
+Name: Tünde
+Languages: ['hu_HU']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.zh-TW.Meijia
+Name: Meijia
+Languages: ['zh_TW']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.el-GR.Melina
+Name: Melina
+Languages: ['el_GR']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.ru-RU.Milena
+Name: Milena
+Languages: ['ru_RU']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.en-IE.Moira
+Name: Moira
+Languages: ['en_IE']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.es-ES.Monica
+Name: Mónica
+Languages: ['es_ES']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.ca-ES.Montserrat
+Name: Montse
+Languages: ['ca_ES']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.nb-NO.Nora
+Name: Nora
+Languages: ['nb_NO']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.speech.synthesis.voice.Organ
+Name: Organ
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.voice.compact.es-MX.Paulina
+Name: Paulina
+Languages: ['es_MX']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.speech.synthesis.voice.Princess
+Name: Superstar
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.speech.synthesis.voice.Ralph
+Name: Ralph
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.de-DE.Reed
+Name: Reed (German (Germany))
+Languages: ['de_DE']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.en-GB.Reed
+Name: Reed (English (UK))
+Languages: ['en_GB']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.en-US.Reed
+Name: Reed (English (US))
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.es-ES.Reed
+Name: Reed (Spanish (Spain))
+Languages: ['es_ES']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.es-MX.Reed
+Name: Reed (Spanish (Mexico))
+Languages: ['es_MX']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.fi-FI.Reed
+Name: Reed (Finnish (Finland))
+Languages: ['fi_FI']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.fr-CA.Reed
+Name: Reed (French (Canada))
+Languages: ['fr_CA']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.it-IT.Reed
+Name: Reed (Italian (Italy))
+Languages: ['it_IT']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.pt-BR.Reed
+Name: Reed (Portuguese (Brazil))
+Languages: ['pt_BR']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.voice.compact.en-IN.Rishi
+Name: Rishi
+Languages: ['en_IN']
+Gender: VoiceGenderMale
+-----
+ID: com.apple.eloquence.de-DE.Rocko
+Name: Rocko (German (Germany))
+Languages: ['de_DE']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.en-GB.Rocko
+Name: Rocko (English (UK))
+Languages: ['en_GB']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.en-US.Rocko
+Name: Rocko (English (US))
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.es-ES.Rocko
+Name: Rocko (Spanish (Spain))
+Languages: ['es_ES']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.es-MX.Rocko
+Name: Rocko (Spanish (Mexico))
+Languages: ['es_MX']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.fi-FI.Rocko
+Name: Rocko (Finnish (Finland))
+Languages: ['fi_FI']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.fr-CA.Rocko
+Name: Rocko (French (Canada))
+Languages: ['fr_CA']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.fr-FR.Rocko
+Name: Rocko (French (France))
+Languages: ['fr_FR']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.it-IT.Rocko
+Name: Rocko (Italian (Italy))
+Languages: ['it_IT']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.pt-BR.Rocko
+Name: Rocko (Portuguese (Brazil))
+Languages: ['pt_BR']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.voice.compact.en-US.Samantha
+Name: Samantha
+Languages: ['en_US']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.eloquence.de-DE.Sandy
+Name: Sandy (German (Germany))
+Languages: ['de_DE']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.en-GB.Sandy
+Name: Sandy (English (UK))
+Languages: ['en_GB']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.en-US.Sandy
+Name: Sandy (English (US))
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.es-ES.Sandy
+Name: Sandy (Spanish (Spain))
+Languages: ['es_ES']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.es-MX.Sandy
+Name: Sandy (Spanish (Mexico))
+Languages: ['es_MX']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.fi-FI.Sandy
+Name: Sandy (Finnish (Finland))
+Languages: ['fi_FI']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.fr-CA.Sandy
+Name: Sandy (French (Canada))
+Languages: ['fr_CA']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.fr-FR.Sandy
+Name: Sandy (French (France))
+Languages: ['fr_FR']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.it-IT.Sandy
+Name: Sandy (Italian (Italy))
+Languages: ['it_IT']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.pt-BR.Sandy
+Name: Sandy (Portuguese (Brazil))
+Languages: ['pt_BR']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.voice.compact.da-DK.Sara
+Name: Sara
+Languages: ['da_DK']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.fi-FI.Satu
+Name: Satu
+Languages: ['fi_FI']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.eloquence.de-DE.Shelley
+Name: Shelley (German (Germany))
+Languages: ['de_DE']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.en-GB.Shelley
+Name: Shelley (English (UK))
+Languages: ['en_GB']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.en-US.Shelley
+Name: Shelley (English (US))
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.es-ES.Shelley
+Name: Shelley (Spanish (Spain))
+Languages: ['es_ES']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.es-MX.Shelley
+Name: Shelley (Spanish (Mexico))
+Languages: ['es_MX']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.fi-FI.Shelley
+Name: Shelley (Finnish (Finland))
+Languages: ['fi_FI']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.fr-CA.Shelley
+Name: Shelley (French (Canada))
+Languages: ['fr_CA']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.fr-FR.Shelley
+Name: Shelley (French (France))
+Languages: ['fr_FR']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.it-IT.Shelley
+Name: Shelley (Italian (Italy))
+Languages: ['it_IT']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.eloquence.pt-BR.Shelley
+Name: Shelley (Portuguese (Brazil))
+Languages: ['pt_BR']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.voice.compact.zh-HK.Sinji
+Name: Sinji
+Languages: ['zh_HK']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.en-ZA.Tessa
+Name: Tessa
+Languages: ['en_ZA']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.fr-FR.Thomas
+Name: Thomas
+Languages: ['fr_FR']
+Gender: VoiceGenderMale
+-----
+ID: com.apple.voice.compact.zh-CN.Tingting
+Name: Tingting
+Languages: ['zh_CN']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.speech.synthesis.voice.Trinoids
+Name: Trinoids
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.speech.synthesis.voice.Whisper
+Name: Whisper
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.voice.compact.nl-NL.Xander
+Name: Xander
+Languages: ['nl_NL']
+Gender: VoiceGenderMale
+-----
+ID: com.apple.voice.compact.tr-TR.Yelda
+Name: Yelda
+Languages: ['tr_TR']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.ko-KR.Yuna
+Name: Yuna
+Languages: ['ko_KR']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.speech.synthesis.voice.Zarvox
+Name: Zarvox
+Languages: ['en_US']
+Gender: VoiceGenderNeuter
+-----
+ID: com.apple.voice.compact.pl-PL.Zosia
+Name: Zosia
+Languages: ['pl_PL']
+Gender: VoiceGenderFemale
+-----
+ID: com.apple.voice.compact.cs-CZ.Zuzana
+Name: Zuzana
+Languages: ['cs_CZ']
+Gender: VoiceGenderFemale
+-----
