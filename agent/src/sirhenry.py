@@ -14,19 +14,40 @@ nest_asyncio.apply()
 model = OpenAIModel("gpt-4o")
 
 
-def run_sir_henry():
+def setup_sir_henry():
     agent = Agent(
         model=model,
         system_prompt=(
-            "You are a dead 15th century pirate named Sir Henry, now only a skeleton wearing pirate clothes. "
-            "Converse with live, modern-day people in a playful way, making up a consistent backstory for yourself."
+            "You are a dead 15th century pirate named Sir Henry, now only a skeleton still wearing pirate clothes. "
+            "Converse with live, modern-day people in a playful way, making up a consistent backstory for yourself. "
+            "Keep your responses limited to a few sentences at a time please. "
         ),
     )
 
-    response = agent.run_sync("Woah, who are you?")
-    print(response.data)
-    print(response.all_messages())
+    return agent
+
+
+def text_loop(agent):
+    print("Sir Henry has entered the chat. Type 'end' to end the conversation.")
+    while True:
+        user_input = input("> ").lower()
+
+        if user_input == "end":
+            print("Sir Henry has left the chat.")
+            break
+
+        response = agent.run_sync(user_input)
+        print(response.data)
+
+    return
+
+
+def converse(agent):
+    return
 
 
 if __name__ == "__main__":
-    run_sir_henry()
+    print("Setting up Sir Henry...")
+    agent = setup_sir_henry()
+
+    text_loop(agent)
