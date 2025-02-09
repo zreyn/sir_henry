@@ -19,6 +19,8 @@ torch = "^2.6.0"
 torchvision = "^0.21.0"
 torchaudio = "^2.6.0"
 sounddevice = "^0.5.1"
+speechrecognition = "^3.14.1"
+pocketsphinx = "^5.0.4"
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"

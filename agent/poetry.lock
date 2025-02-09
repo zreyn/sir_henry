@@ -60,6 +60,50 @@ test = ["anyio[trio]", "coverage[toml] (>=7)", "exceptiongroup (>=1.2.0)", "hypo
 trio = ["trio (>=0.26.1)"]
 
 [[package]]
+name = "audioop-lts"
+version = "0.2.1"
+description = "LTS Port of Python audioop"
+optional = false
+python-versions = ">=3.13"
+groups = ["main"]
+markers = "python_version >= \"3.13\""
+files = [
+    {file = "audioop_lts-0.2.1-cp313-abi3-macosx_10_13_universal2.whl", hash = "sha256:fd1345ae99e17e6910f47ce7d52673c6a1a70820d78b67de1b7abb3af29c426a"},
+    {file = "audioop_lts-0.2.1-cp313-abi3-macosx_10_13_x86_64.whl", hash = "sha256:e175350da05d2087e12cea8e72a70a1a8b14a17e92ed2022952a4419689ede5e"},
+    {file = "audioop_lts-0.2.1-cp313-abi3-macosx_11_0_arm64.whl", hash = "sha256:4a8dd6a81770f6ecf019c4b6d659e000dc26571b273953cef7cd1d5ce2ff3ae6"},
+    {file = "audioop_lts-0.2.1-cp313-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d1cd3c0b6f2ca25c7d2b1c3adeecbe23e65689839ba73331ebc7d893fcda7ffe"},
+    {file = "audioop_lts-0.2.1-cp313-abi3-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:ff3f97b3372c97782e9c6d3d7fdbe83bce8f70de719605bd7ee1839cd1ab360a"},
+    {file = "audioop_lts-0.2.1-cp313-abi3-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:a351af79edefc2a1bd2234bfd8b339935f389209943043913a919df4b0f13300"},
+    {file = "audioop_lts-0.2.1-cp313-abi3-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:2aeb6f96f7f6da80354330470b9134d81b4cf544cdd1c549f2f45fe964d28059"},
+    {file = "audioop_lts-0.2.1-cp313-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c589f06407e8340e81962575fcffbba1e92671879a221186c3d4662de9fe804e"},
+    {file = "audioop_lts-0.2.1-cp313-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:fbae5d6925d7c26e712f0beda5ed69ebb40e14212c185d129b8dfbfcc335eb48"},
+    {file = "audioop_lts-0.2.1-cp313-abi3-musllinux_1_2_i686.whl", hash = "sha256:d2d5434717f33117f29b5691fbdf142d36573d751716249a288fbb96ba26a281"},
+    {file = "audioop_lts-0.2.1-cp313-abi3-musllinux_1_2_ppc64le.whl", hash = "sha256:f626a01c0a186b08f7ff61431c01c055961ee28769591efa8800beadd27a2959"},
+    {file = "audioop_lts-0.2.1-cp313-abi3-musllinux_1_2_s390x.whl", hash = "sha256:05da64e73837f88ee5c6217d732d2584cf638003ac72df124740460531e95e47"},
+    {file = "audioop_lts-0.2.1-cp313-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:56b7a0a4dba8e353436f31a932f3045d108a67b5943b30f85a5563f4d8488d77"},
+    {file = "audioop_lts-0.2.1-cp313-abi3-win32.whl", hash = "sha256:6e899eb8874dc2413b11926b5fb3857ec0ab55222840e38016a6ba2ea9b7d5e3"},
+    {file = "audioop_lts-0.2.1-cp313-abi3-win_amd64.whl", hash = "sha256:64562c5c771fb0a8b6262829b9b4f37a7b886c01b4d3ecdbae1d629717db08b4"},
+    {file = "audioop_lts-0.2.1-cp313-abi3-win_arm64.whl", hash = "sha256:c45317debeb64002e980077642afbd977773a25fa3dfd7ed0c84dccfc1fafcb0"},
+    {file = "audioop_lts-0.2.1-cp313-cp313t-macosx_10_13_universal2.whl", hash = "sha256:3827e3fce6fee4d69d96a3d00cd2ab07f3c0d844cb1e44e26f719b34a5b15455"},
+    {file = "audioop_lts-0.2.1-cp313-cp313t-macosx_10_13_x86_64.whl", hash = "sha256:161249db9343b3c9780ca92c0be0d1ccbfecdbccac6844f3d0d44b9c4a00a17f"},
+    {file = "audioop_lts-0.2.1-cp313-cp313t-macosx_11_0_arm64.whl", hash = "sha256:5b7b4ff9de7a44e0ad2618afdc2ac920b91f4a6d3509520ee65339d4acde5abf"},
+    {file = "audioop_lts-0.2.1-cp313-cp313t-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:72e37f416adb43b0ced93419de0122b42753ee74e87070777b53c5d2241e7fab"},
+    {file = "audioop_lts-0.2.1-cp313-cp313t-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:534ce808e6bab6adb65548723c8cbe189a3379245db89b9d555c4210b4aaa9b6"},
+    {file = "audioop_lts-0.2.1-cp313-cp313t-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:d2de9b6fb8b1cf9f03990b299a9112bfdf8b86b6987003ca9e8a6c4f56d39543"},
+    {file = "audioop_lts-0.2.1-cp313-cp313t-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:f24865991b5ed4b038add5edbf424639d1358144f4e2a3e7a84bc6ba23e35074"},
+    {file = "audioop_lts-0.2.1-cp313-cp313t-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2bdb3b7912ccd57ea53197943f1bbc67262dcf29802c4a6df79ec1c715d45a78"},
+    {file = "audioop_lts-0.2.1-cp313-cp313t-musllinux_1_2_aarch64.whl", hash = "sha256:120678b208cca1158f0a12d667af592e067f7a50df9adc4dc8f6ad8d065a93fb"},
+    {file = "audioop_lts-0.2.1-cp313-cp313t-musllinux_1_2_i686.whl", hash = "sha256:54cd4520fc830b23c7d223693ed3e1b4d464997dd3abc7c15dce9a1f9bd76ab2"},
+    {file = "audioop_lts-0.2.1-cp313-cp313t-musllinux_1_2_ppc64le.whl", hash = "sha256:d6bd20c7a10abcb0fb3d8aaa7508c0bf3d40dfad7515c572014da4b979d3310a"},
+    {file = "audioop_lts-0.2.1-cp313-cp313t-musllinux_1_2_s390x.whl", hash = "sha256:f0ed1ad9bd862539ea875fb339ecb18fcc4148f8d9908f4502df28f94d23491a"},
+    {file = "audioop_lts-0.2.1-cp313-cp313t-musllinux_1_2_x86_64.whl", hash = "sha256:e1af3ff32b8c38a7d900382646e91f2fc515fd19dea37e9392275a5cbfdbff63"},
+    {file = "audioop_lts-0.2.1-cp313-cp313t-win32.whl", hash = "sha256:f51bb55122a89f7a0817d7ac2319744b4640b5b446c4c3efcea5764ea99ae509"},
+    {file = "audioop_lts-0.2.1-cp313-cp313t-win_amd64.whl", hash = "sha256:f0f2f336aa2aee2bce0b0dcc32bbba9178995454c7b979cf6ce086a8801e14c7"},
+    {file = "audioop_lts-0.2.1-cp313-cp313t-win_arm64.whl", hash = "sha256:78bfb3703388c780edf900be66e07de5a3d4105ca8e8720c5c4d67927e0b15d0"},
+    {file = "audioop_lts-0.2.1.tar.gz", hash = "sha256:e81268da0baa880431b68b1308ab7257eb33f356e57a5f9b1f915dfb13dd1387"},
+]
+
+[[package]]
 name = "black"
 version = "25.1.0"
 description = "The uncompromising code formatter."
@@ -1582,6 +1626,44 @@ files = [
 [package.extras]
 dev = ["pre-commit", "tox"]
 testing = ["pytest", "pytest-benchmark"]
+
+[[package]]
+name = "pocketsphinx"
+version = "5.0.4"
+description = "Official Python bindings for PocketSphinx"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "pocketsphinx-5.0.4-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:46d55f8e39e4efd7a9510b4e3f04fff1f584d01feaf1eb916a6c0f1a1d9fc08e"},
+    {file = "pocketsphinx-5.0.4-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:1252b6ba31fb1404aa10d182d9b2685a3cac1753729390c8ec2dde0a882d88b9"},
+    {file = "pocketsphinx-5.0.4-cp310-cp310-musllinux_1_2_x86_64.whl", hash = "sha256:3af489151b2bdd910fe279fd6abdc7e53936c6b140a4bae743478cc3419a4cda"},
+    {file = "pocketsphinx-5.0.4-cp310-cp310-win_amd64.whl", hash = "sha256:3dbbca377ca081c1afeb87dac8d17e41e17dcb89ff04041edb03a73b42e53bbd"},
+    {file = "pocketsphinx-5.0.4-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:282cb925422b11dcc0c66e04ae3bb1f0a0af9518ef37db279a4b9a27826ae9bd"},
+    {file = "pocketsphinx-5.0.4-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a3541ad8b6ce00230bd96fe520d48c3a252e031531bc8337dfccf7553cbca998"},
+    {file = "pocketsphinx-5.0.4-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:e6cb6962b4715c3b0340d7c4b1d7043a00d0f95a7cffe2eb0a21a59d8ac791d1"},
+    {file = "pocketsphinx-5.0.4-cp311-cp311-win_amd64.whl", hash = "sha256:8a80ee83afd5c837ed14b5dcf7dce12cc87fcf1431fabe82ab51d8ee0aeebbc4"},
+    {file = "pocketsphinx-5.0.4-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:833d0ba73affdec98883e0828dbacb69ab4932f4e739062076ed679e54878f21"},
+    {file = "pocketsphinx-5.0.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:efd1ab4a14560764b4d635f4995994e6d94d6fa70a00f5e38d08418a90ea8547"},
+    {file = "pocketsphinx-5.0.4-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:d422e0f1bf6c1fb1b5405e2df73046ea8764375282f28d7b0e739a8177546c2e"},
+    {file = "pocketsphinx-5.0.4-cp312-cp312-win_amd64.whl", hash = "sha256:fd4f9bf9e3643ab00dd7978b64f34876189f4720231636b5185e8e8589c49e16"},
+    {file = "pocketsphinx-5.0.4-cp313-cp313-macosx_10_13_universal2.whl", hash = "sha256:f929ff0dbf550c6e9f08021b481a01c323e79ebd00730f3018fa431ff7e6aded"},
+    {file = "pocketsphinx-5.0.4-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:51d220084d0f465608894ef885c0d03936d56998c858abc0f96bf81f0cc924b1"},
+    {file = "pocketsphinx-5.0.4-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:a423114051c1be9417238282f2aef98f803345dd0c10ad3be1156869e433bc66"},
+    {file = "pocketsphinx-5.0.4-cp313-cp313-win_amd64.whl", hash = "sha256:c04bc224c9bf812d46b2ffbb576cde0353fc4e765fb59f98756668935647a505"},
+    {file = "pocketsphinx-5.0.4-cp38-cp38-macosx_10_9_universal2.whl", hash = "sha256:ea9efc6bd47690f4a453d11f0e7fb4b4a4d47978b742b87e7f1741cc75a5d597"},
+    {file = "pocketsphinx-5.0.4-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3365a0b783879ece2553ac33015b12350b0c968c2b343a8387142252caaf10bd"},
+    {file = "pocketsphinx-5.0.4-cp38-cp38-musllinux_1_2_x86_64.whl", hash = "sha256:f65ad8b78d96267fae103206425eb6e9cebcbb12a408ac5da3e22e7623631fa6"},
+    {file = "pocketsphinx-5.0.4-cp38-cp38-win_amd64.whl", hash = "sha256:ad19f3c37554df6bbadd7d73fd2178be9959071cea4f2b5775864102abeeae0a"},
+    {file = "pocketsphinx-5.0.4-pp310-pypy310_pp73-macosx_10_15_x86_64.whl", hash = "sha256:c20e62f37d92a1447ceb8cd217811a2a4f86abb34748b44cad8b9c1dadce6ba3"},
+    {file = "pocketsphinx-5.0.4-pp310-pypy310_pp73-macosx_11_0_arm64.whl", hash = "sha256:09f2c7922b8673b9b41be63a813c679ceead4bd760e4e4654cb1ec0529e51e97"},
+    {file = "pocketsphinx-5.0.4-pp310-pypy310_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:aea292504f21ff243c52221710176842417b5bad5728d47a666f955f21f28024"},
+    {file = "pocketsphinx-5.0.4-pp310-pypy310_pp73-win_amd64.whl", hash = "sha256:ef3bb0f69a7fdbce46f6d815ed025ae4860b38d5f9c610e512201dff19f4ce53"},
+    {file = "pocketsphinx-5.0.4.tar.gz", hash = "sha256:17d2971e998490def9554b6ba41886708422af5b4ae888723b1b077aab0fe8d4"},
+]
+
+[package.dependencies]
+sounddevice = "*"
 
 [[package]]
 name = "pyasn1"
@@ -5650,6 +5732,64 @@ CFFI = ">=1.0"
 numpy = ["NumPy"]
 
 [[package]]
+name = "speechrecognition"
+version = "3.14.1"
+description = "Library for performing speech recognition, with support for several engines and APIs, online and offline."
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "SpeechRecognition-3.14.1-py3-none-any.whl", hash = "sha256:2b5d16a7dce2dbf5f90d9c4d5aefe96325518abdc963059ec16dad9e4f2c09d3"},
+    {file = "speechrecognition-3.14.1.tar.gz", hash = "sha256:c767f8558e111a65e9a56905b04eaec2331f87d5011379381621f47aded6c4fe"},
+]
+
+[package.dependencies]
+audioop-lts = {version = "*", markers = "python_version >= \"3.13\""}
+standard-aifc = {version = "*", markers = "python_version >= \"3.13\""}
+typing-extensions = "*"
+
+[package.extras]
+assemblyai = ["requests"]
+audio = ["PyAudio (>=0.2.11)"]
+dev = ["numpy", "pytest", "pytest-randomly", "respx"]
+faster-whisper = ["faster-whisper"]
+google-cloud = ["google-cloud-speech"]
+groq = ["groq", "httpx (<0.28)"]
+openai = ["httpx (<0.28)", "openai"]
+pocketsphinx = ["pocketsphinx"]
+whisper-local = ["openai-whisper", "soundfile"]
+
+[[package]]
+name = "standard-aifc"
+version = "3.13.0"
+description = "Standard library aifc redistribution. \"dead battery\"."
+optional = false
+python-versions = "*"
+groups = ["main"]
+markers = "python_version >= \"3.13\""
+files = [
+    {file = "standard_aifc-3.13.0-py3-none-any.whl", hash = "sha256:f7ae09cc57de1224a0dd8e3eb8f73830be7c3d0bc485de4c1f82b4a7f645ac66"},
+    {file = "standard_aifc-3.13.0.tar.gz", hash = "sha256:64e249c7cb4b3daf2fdba4e95721f811bde8bdfc43ad9f936589b7bb2fae2e43"},
+]
+
+[package.dependencies]
+audioop-lts = {version = "*", markers = "python_version >= \"3.13\""}
+standard-chunk = {version = "*", markers = "python_version >= \"3.13\""}
+
+[[package]]
+name = "standard-chunk"
+version = "3.13.0"
+description = "Standard library chunk redistribution. \"dead battery\"."
+optional = false
+python-versions = "*"
+groups = ["main"]
+markers = "python_version >= \"3.13\""
+files = [
+    {file = "standard_chunk-3.13.0-py3-none-any.whl", hash = "sha256:17880a26c285189c644bd5bd8f8ed2bdb795d216e3293e6dbe55bbd848e2982c"},
+    {file = "standard_chunk-3.13.0.tar.gz", hash = "sha256:4ac345d37d7e686d2755e01836b8d98eda0d1a3ee90375e597ae43aaf064d654"},
+]
+
+[[package]]
 name = "sympy"
 version = "1.13.1"
 description = "Computer algebra system (CAS) in Python"
@@ -5984,4 +6124,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12, <4.0"
-content-hash = "4fd43cdcaeaf8f87ce3bace587f5a098e4d9fa23b8ad737c180f5bb5dff0d82d"
+content-hash = "c08b39db870a76053bac496510cc0f45451c4884277fa384e167b3572d18ce39"
