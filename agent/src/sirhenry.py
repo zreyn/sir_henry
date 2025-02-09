@@ -35,7 +35,9 @@ def setup_sir_henry(text_to_speech=False):
         # tts_engine.setProperty("voice", "com.apple.speech.synthesis.voice.Boing") # robot goblin
         # tts_engine.setProperty("voice", "com.apple.speech.synthesis.voice.Bubbles") # sounds underwater
         # tts_engine.setProperty("voice", "com.apple.speech.synthesis.voice.Cellos") # ominous cello singing
-        tts_engine.setProperty("voice", "com.apple.speech.synthesis.voice.Deranged") # shaky, crazy voice
+        tts_engine.setProperty(
+            "voice", "com.apple.speech.synthesis.voice.Deranged"
+        )  # shaky, crazy voice
 
     return agent, tts_engine
 
