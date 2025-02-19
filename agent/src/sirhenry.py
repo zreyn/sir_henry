@@ -38,6 +38,10 @@ def setup_sir_henry():
 
 def text_loop(agent, tts_engine, listener):
     print("Sir Henry has entered the chat.")
+
+    response = agent.run_sync("")
+    print(response.data)
+    text_to_speech(response.data, tts_engine)
     while True:
         try:
             user_input = speech_to_text(listener)
@@ -48,8 +52,7 @@ def text_loop(agent, tts_engine, listener):
 
         response = agent.run_sync(user_input)
         print(response.data)
-        if tts_engine:
-            text_to_speech(response.data, tts_engine)
+        text_to_speech(response.data, tts_engine)
 
     return
 

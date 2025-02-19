@@ -5,10 +5,6 @@ from pydantic import BaseModel, Field
 from pydantic_ai import Agent, ModelRetry, RunContext, Tool
 from pydantic_ai.models.openai import OpenAIModel
 
-import pyttsx3
-
-import speech_recognition as sr
-
 load_dotenv()
 API_KEY = getenv("OPENAI_API_KEY")
 
@@ -30,6 +26,9 @@ def setup_sir_henry(text_to_speech=False):
 
 def text_loop(agent):
     print("Sir Henry has entered the chat. Type 'end' to end the conversation.")
+    response = agent.run_sync("")
+    print(response.data)
+
     while True:
         user_input = input("> ").lower()
 
