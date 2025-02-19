@@ -22,6 +22,7 @@ openai-whisper = "^20240930"
 speechrecognition = "^3.14.1"
 soundfile = "^0.13.1"
 pyaudio = "^0.2.14"
+elevenlabs = "^1.51.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"
