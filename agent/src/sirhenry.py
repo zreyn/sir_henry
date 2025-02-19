@@ -1,17 +1,20 @@
 from os import getenv
 from dotenv import load_dotenv
 
-from pydantic import BaseModel, Field
-from pydantic_ai import Agent, ModelRetry, RunContext, Tool
+from pydantic_ai import Agent
 from pydantic_ai.models.openai import OpenAIModel
 
-import pyttsx3
+from elevenlabs import ElevenLabs, stream
 
 import speech_recognition as sr
 
 load_dotenv()
-API_KEY = getenv("OPENAI_API_KEY")
+OPENAI_API_KEY = getenv("OPENAI_API_KEY")
+ELEVENLABS_API_KEY = getenv("ELEVENLABS_API_KEY")
 
+
+elevenlabs_voice_id = "PPzYpIqttlTYA83688JI"
+elevenlabs_model_id = "eleven_multilingual_v2"
 model = OpenAIModel("gpt-4o")
 
 
@@ -26,12 +29,8 @@ def setup_sir_henry():
         ),
     )
 
-    tts_engine = pyttsx3.init()
-    tts_engine.setProperty("rate", 150)
-    tts_engine.setProperty("volume", 1.0)
-    tts_engine.setProperty("voice", "com.apple.voice.compact.en-GB.Daniel")
-
     listener = sr.Recognizer()
+    tts_engine = ElevenLabs(api_key=ELEVENLABS_API_KEY)
 
     return agent, tts_engine, listener
 
@@ -59,8 +58,12 @@ def text_loop(agent, tts_engine, listener):
 
 def text_to_speech(text, tts_engine):
     try:
-        tts_engine.say(text)
-        tts_engine.runAndWait()
+        audio_stream = tts_engine.text_to_speech.convert_as_stream(
+            voice_id=elevenlabs_voice_id,
+            model_id=elevenlabs_model_id,
+            text=text,
+        )
+        stream(audio_stream)
     except Exception as e:
         print(f"Error during TTS conversion: {e}")
 

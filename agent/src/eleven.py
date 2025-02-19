@@ -1,7 +1,7 @@
 from os import getenv
 from dotenv import load_dotenv
 
-from elevenlabs import ElevenLabs, play
+from elevenlabs import ElevenLabs, stream
 
 load_dotenv()
 ELEVENLABS_API_KEY = getenv("ELEVENLABS_API_KEY")
@@ -26,11 +26,10 @@ if __name__ == "__main__":
     print("Setting up cool pirate voice...")
     elevenlabs_client = setup_cool_pirate_voice()
 
-    speech = elevenlabs_client.text_to_speech.convert(
+    audio_stream = elevenlabs_client.text_to_speech.convert_as_stream(
         voice_id=elevenlabs_voice_id,
         model_id=elevenlabs_model_id,
         text=sample_text,
     )
 
-    play(speech)
-
+    stream(audio_stream)
