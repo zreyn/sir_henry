@@ -23,6 +23,7 @@ speechrecognition = "^3.14.1"
 soundfile = "^0.13.1"
 pyaudio = "^0.2.14"
 elevenlabs = "^1.51.0"
+dotenv = "^0.9.9"
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"
@@ -32,3 +33,20 @@ pytest-cov = "^6.0.0"
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.coverage.run]
+branch = false
+source = ["src"]
+
+[tool.coverage.paths]
+source = ["src"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 100
+exclude_lines = [
+    "# pragma: no cover"
+]
+omit = [
+]

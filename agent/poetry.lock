@@ -507,6 +507,20 @@ files = [
 ]
 
 [[package]]
+name = "dotenv"
+version = "0.9.9"
+description = "Deprecated package"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "dotenv-0.9.9-py2.py3-none-any.whl", hash = "sha256:29cf74a087b31dafdb5a446b6d7e11cbce8ed2741540e2339c69fbef92c94ce9"},
+]
+
+[package.dependencies]
+python-dotenv = "*"
+
+[[package]]
 name = "elevenlabs"
 version = "1.51.0"
 description = ""
@@ -6242,4 +6256,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12, <4.0"
-content-hash = "0d5210baa68f0c89637c603a5fd8811d126c2a2c0373a71a8fb992fc5f28d7db"
+content-hash = "92c1b1ba0b612663f51ee18d6be32159f53a26aac98d1e1805cf176bf099e8ad"
