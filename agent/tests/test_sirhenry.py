@@ -6,18 +6,9 @@ import io
 import pytest
 
 
-@patch("sirhenry.dynamo_wrangler.read_items")
-@patch("src.cache_loader.wr.s3")
-def test_export(mock_dynamo, mock_s3):
-    mock_dynamo = MagicMock(side_effect=[pd.DataFrame()])
-    mock_s3.to_parquet = MagicMock(side_effect=[])
-    handler.lambda_handler({}, lambda_context)
-
-gent, tts_engine, listener = setup_sir_henry()
-
 @patch("src.sirhenry.Agent")
 @patch("src.sirhenry.sr.Recognizer")
-@patch("src.cachElevenLabs")
+@patch("src.sirhenry.ElevenLabs")
 def test_setup_sir_henry(mock_elevenlabs, mock_recognizer, mock_agent):
     """Test the setup_sir_henry function."""
 
@@ -31,21 +22,6 @@ def test_setup_sir_henry(mock_elevenlabs, mock_recognizer, mock_agent):
     mock_agent.assert_called_once()
     mock_recognizer.assert_called_once()
     mock_elevenlabs.assert_called_once()
-
-
-# def test_setup_sir_henry(mock_elevenlabs, mock_recognizer, mock_agent):
-#     """Test the setup_sir_henry function."""
-
-#     agent, tts_engine, listener = sirhenry.setup_sir_henry()
-
-#     # Assertions
-#     assert agent == mock_agent.return_value
-#     assert tts_engine == mock_elevenlabs.return_value
-#     assert listener == mock_recognizer.return_value
-
-#     mock_agent.assert_called_once()
-#     mock_recognizer.assert_called_once()
-#     mock_elevenlabs.assert_called_once()
 
 
 # def test_text_loop(mock_run_sync, mock_speech_to_text, mock_text_to_speech, capsys):
