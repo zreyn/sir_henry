@@ -29,7 +29,7 @@ def setup_sir_henry(text_to_speech=False):
 def text_loop(agent):
     print("Sir Henry has entered the chat. Type 'end' to end the conversation.")
     response = agent.run_sync("")
-    print(response.data)
+    print(response.output)
 
     while True:
         user_input = input("> ").lower()
@@ -39,7 +39,7 @@ def text_loop(agent):
             break
 
         response = agent.run_sync(user_input)
-        print(response.data)
+        print(response.output)
 
     return
 

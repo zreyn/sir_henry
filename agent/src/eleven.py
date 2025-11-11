@@ -26,7 +26,7 @@ if __name__ == "__main__":
     print("Setting up cool pirate voice...")
     elevenlabs_client = setup_cool_pirate_voice()
 
-    audio_stream = elevenlabs_client.text_to_speech.convert_as_stream(
+    audio_stream = elevenlabs_client.text_to_speech.convert(
         voice_id=elevenlabs_voice_id,
         model_id=elevenlabs_model_id,
         text=sample_text,

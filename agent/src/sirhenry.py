@@ -49,8 +49,8 @@ def text_loop(agent, tts_engine, listener):
     logger.info("Sir Henry has entered the chat.")
 
     response = agent.run_sync("")
-    logger.info(response.data)
-    text_to_speech(response.data, tts_engine)
+    logger.info(response.output)
+    text_to_speech(response.output, tts_engine)
     while True:
         try:
             user_input = speech_to_text(listener)
@@ -60,15 +60,15 @@ def text_loop(agent, tts_engine, listener):
             logger.error(f"An error occurred: {e}")
 
         response = agent.run_sync(user_input)
-        logger.info(response.data)
-        text_to_speech(response.data, tts_engine)
+        logger.info(response.output)
+        text_to_speech(response.output, tts_engine)
 
     return
 
 
 def text_to_speech(text, tts_engine):
     try:
-        audio_stream = tts_engine.text_to_speech.convert_as_stream(
+        audio_stream = tts_engine.text_to_speech.stream(
             voice_id=elevenlabs_voice_id,
             model_id=elevenlabs_model_id,
             text=text,

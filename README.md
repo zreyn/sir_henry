@@ -4,6 +4,6 @@ This is a fun personal project where I take a Halloween skeleton pirate and have
 In these early days:
 ```
 cd agent
-poetry install
-poetry run python src/sirhenry.py
+uv sync
+uv run python src/sirhenry.py
 ```
