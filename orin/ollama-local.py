@@ -9,7 +9,7 @@ from pydantic_ai.providers.ollama import OllamaProvider
 
 load_dotenv()
 
-model = OpenAIChatModel(
+model = OpenAIModel(
   model_name="llama3.2:3b",
   provider=OllamaProvider(base_url="http://localhost:11434"),
 )
