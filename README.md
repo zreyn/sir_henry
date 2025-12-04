@@ -7,3 +7,8 @@ cd agent
 uv sync
 uv run python src/sirhenry.py
 ```
+
+To install dev dependencies:
+```
+uv sync --extra dev
+```
