@@ -33,9 +33,13 @@ PRE_ROLL_MS = 200
 # TTS config
 REF_AUDIO_PATH = "./models/sirhenry-reference.wav"
 REF_TEXT = "Arr, ye callin' upon the spirit o' Sir Henry the Dread Pirate Roberts -- or what's left o` me, anyway."
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+_FORCE_DEV = os.environ.get("TTS_DEVICE", "").lower()
+DEVICE = (
+    "cpu" if _FORCE_DEV == "cpu" else ("cuda" if torch.cuda.is_available() else "cpu")
+)
 
 interrupt_event = threading.Event()
+is_speaking = threading.Event()
 prompt_queue = queue.Queue()
 sentence_queue = queue.Queue()
 mic_audio_queue = queue.Queue()
@@ -60,12 +64,15 @@ def load_models():
     # in the main thread before CTranslate2 (Whisper) loads its libraries.
     from faster_whisper import WhisperModel
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    compute_type = "float16" if device == "cuda" else "int8"
+    # Allow overriding STT device via env var, default to cuda if available
+    # stt_device =
+    stt_device = "cpu"
+    compute_type = "float16" if stt_device == "cuda" else "int8"
 
-    whisper_model = WhisperModel("small", device=device, compute_type=compute_type)
+    print(f"Initializing Whisper on {stt_device.upper()}...")
+    whisper_model = WhisperModel("small", device=stt_device, compute_type=compute_type)
 
-    print(f"Models loaded. Running on {device.upper()}.")
+    print(f"Models loaded. STT running on {stt_device.upper()}.")
     return vad_model, whisper_model
 
 
@@ -126,14 +133,18 @@ def listen():
                         print(f"\n[Processing {len(speech_buffer)} chunks...]")
 
                         # Stop audio playback if user interrupts
-                        if not playback_audio_queue.empty() or sd.get_stream().active:
+                        if not playback_audio_queue.empty() or is_speaking.is_set():
                             interrupt_event.set()
                             # Clear queues to stop old bot speech
                             with sentence_queue.mutex:
                                 sentence_queue.queue.clear()
                             with playback_audio_queue.mutex:
                                 playback_audio_queue.queue.clear()
-                            sd.stop()
+                            try:
+                                # Attempt to stop playback if running
+                                sd.stop()
+                            except Exception:
+                                pass
                             time.sleep(0.1)  # Give threads time to notice interrupt
 
                         full_audio = np.concatenate(speech_buffer)
@@ -228,43 +239,30 @@ class TTSPlayer:
 
         print("Downloading/Loading F5-TTS model...")
         model_dir = snapshot_download("SWivid/F5-TTS", cache_dir="./models/")
-        base_dir = os.path.join(
-            model_dir, "F5TTS_Base"
-        )  # Updated path name for repo consistency
 
-        # Check for safetensors first, then pt
+        # Use the F5TTS_v1_Base model checkpoint
+        # Check for safetensors first (preferred), then .pt file
+        base_dir = os.path.join(model_dir, "F5TTS_v1_Base")
         ckpt_path = None
         vocab_file = None
 
-        # Logic to find the model file (handling potential repo structure variations)
-        possible_files = [
-            "model_1200000.safetensors",
-            "model_1200000.pt",
-            "model_1250000.pt",
-        ]
-
         if os.path.exists(base_dir):
-            for fname in possible_files:
-                fpath = os.path.join(base_dir, fname)
-                if os.path.exists(fpath):
-                    ckpt_path = fpath
-                    break
-            vocab_file = os.path.join(base_dir, "vocab.txt")
+            # Try safetensors first
+            safetensors_path = os.path.join(base_dir, "model_1250000.safetensors")
+            pt_path = os.path.join(base_dir, "model_1250000.pt")
+            vocab_path = os.path.join(base_dir, "vocab.txt")
 
-        # Fallback if standard paths fail (sometimes snapshot downloads flat)
-        if not ckpt_path:
-            print("Searching model dir recursively...")
-            for root, dirs, files in os.walk(model_dir):
-                for fname in possible_files:
-                    if fname in files:
-                        ckpt_path = os.path.join(root, fname)
-                        vocab_file = os.path.join(root, "vocab.txt")
-                        break
-                if ckpt_path:
-                    break
+            if os.path.exists(safetensors_path):
+                ckpt_path = safetensors_path
+            elif os.path.exists(pt_path):
+                ckpt_path = pt_path
+            else:
+                raise FileNotFoundError(f"No checkpoint found in {base_dir}")
 
-        if not ckpt_path:
-            raise FileNotFoundError(f"Could not find F5-TTS checkpoint in {model_dir}")
+            if os.path.exists(vocab_path):
+                vocab_file = vocab_path
+        else:
+            raise FileNotFoundError(f"Model directory not found: {base_dir}")
 
         print(f"Using checkpoint: {ckpt_path}")
 
@@ -291,6 +289,18 @@ class TTSPlayer:
                 ref_audio_path, ref_text
             )
 
+        # Warmup to ensure CUDA kernels are loaded before other libraries (like CTranslate2) interfere
+        if DEVICE == "cuda":
+            print("Warming up TTS CUDA kernels...")
+            try:
+                self.generate_audio("Warmup.")
+                print("TTS Warmup successful.")
+            except Exception as e:
+                print(f"TTS Warmup failed: {e}")
+                print(
+                    "Suggestion: Try running with STT_DEVICE=cpu to avoid library conflicts."
+                )
+
     def generate_audio(self, text):
         if not text.strip():
             return None, None
@@ -298,16 +308,24 @@ class TTSPlayer:
             return None, None
 
         print(f"Generating: '{text}'...")
-        audio, sample_rate, _ = infer_process(
-            self.ref_audio,
-            self.ref_text,
-            text,
-            self.model,
-            self.vocoder,
-            mel_spec_type="vocos",
-            speed=1.0,
-            device=DEVICE,
-        )
+        try:
+            audio, sample_rate, _ = infer_process(
+                self.ref_audio,
+                self.ref_text,
+                text,
+                self.model,
+                self.vocoder,
+                mel_spec_type="vocos",
+                speed=1.0,
+                device=DEVICE,
+            )
+        except RuntimeError as e:
+            msg = str(e)
+            if "cudnn" in msg.lower():
+                print("TTS cuDNN error; set TTS_DEVICE=cpu to force CPU inference.")
+            else:
+                print(f"TTS inference error: {e}")
+            return None, None
 
         # Normalization logic
         audio = np.array(audio, dtype=np.float32)
@@ -349,10 +367,13 @@ def audio_worker():
             continue
 
         try:
+            is_speaking.set()
             sd.play(audio, sr)
             sd.wait()
         except Exception as e:
             print(f"Audio Playback Error: {e}")
+        finally:
+            is_speaking.clear()
 
 
 if __name__ == "__main__":
