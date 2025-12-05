@@ -2,7 +2,7 @@
 **/.DS_Store
 
 # wav files
-*.wav
+**/last_output.wav
 
 # env files
 *.env.*

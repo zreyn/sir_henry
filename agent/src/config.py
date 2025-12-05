@@ -28,7 +28,7 @@ DEVICE = (
 # Character Configuration
 CHARACTERS = {
     "sir_henry": {
-        "ref_audio_path": "./models/sirhenry-reference.wav",
+        "ref_audio_path": "./ref/sirhenry-reference.wav",
         "ref_text": "Arr, ye callin' upon the spirit o' Sir Henry the Dread Pirate Roberts -- or what's left o` me, anyway.",
         "system_prompt": (
             "You are a dead 15th century pirate named Sir Henry, now only a skeleton still wearing pirate clothes. "
