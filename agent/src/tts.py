@@ -18,18 +18,18 @@ class TTSPlayer:
         
         # 1. Download model from HuggingFace if not already cached
         print("Downloading F5-TTS model from HuggingFace...")
-        model_dir = snapshot_download("SWivid/F5-TTS", cache_dir=None)
+        model_dir = snapshot_download("SWivid/F5-TTS", cache_dir="./models/")
         
-        # Use the F5TTS_Base model checkpoint
+        # Use the F5TTS_v1_Base model checkpoint
         # Check for safetensors first (preferred), then .pt file
-        base_dir = os.path.join(model_dir, "F5TTS_Base")
+        base_dir = os.path.join(model_dir, "F5TTS_v1_Base")
         ckpt_path = None
         vocab_file = None
         
         if os.path.exists(base_dir):
             # Try safetensors first
-            safetensors_path = os.path.join(base_dir, "model_1200000.safetensors")
-            pt_path = os.path.join(base_dir, "model_1200000.pt")
+            safetensors_path = os.path.join(base_dir, "model_1250000.safetensors")
+            pt_path = os.path.join(base_dir, "model_1250000.pt")
             vocab_path = os.path.join(base_dir, "vocab.txt")
             
             if os.path.exists(safetensors_path):
@@ -97,6 +97,23 @@ class TTSPlayer:
             device=DEVICE
         )
         
+        # Ensure correct dtype/shape and tame peaks
+        audio = np.array(audio, dtype=np.float32)
+        if audio.ndim > 1:
+            audio = np.squeeze(audio)
+        peak = np.max(np.abs(audio)) if audio.size else 0.0
+        if peak > 1.0:
+            audio = audio / peak
+            print(f"(normalized audio, peak was {peak:.3f})")
+        audio = np.clip(audio * 0.9, -1.0, 1.0)  # slight attenuation to avoid clipping
+
+        # Save to file for inspection
+        try:
+            sf.write("last_output.wav", audio, sample_rate)
+            print("Saved to last_output.wav")
+        except Exception as e:
+            print(f"(warning) could not save wav: {e}")
+
         # Play audio using SoundDevice
         # audio is typically (channels, samples) or (samples,), we ensure it's correct for sd.play
         print("Playing...")
