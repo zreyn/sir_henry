@@ -24,6 +24,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "faster-whisper" },
+    { name = "llama-cpp-python" },
     { name = "llvmlite" },
     { name = "nest-asyncio" },
     { name = "numba" },
@@ -32,6 +33,7 @@ dependencies = [
     { name = "pyaudio" },
     { name = "pydantic-ai" },
     { name = "python-dotenv" },
+    { name = "requests" },
     { name = "silero-vad" },
     { name = "sounddevice" },
     { name = "soundfile" },
@@ -52,6 +54,7 @@ dev = [
 requires-dist = [
     { name = "black", marker = "extra == 'dev'", specifier = ">=25.1.0" },
     { name = "faster-whisper", specifier = ">=1.2.1" },
+    { name = "llama-cpp-python", specifier = ">=0.3.16" },
     { name = "llvmlite", specifier = ">=0.44.0" },
     { name = "nest-asyncio", specifier = ">=1.6.0" },
     { name = "numba", specifier = ">=0.61.0" },
@@ -62,6 +65,7 @@ requires-dist = [
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3.4" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=6.0.0" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
+    { name = "requests", specifier = ">=2.31.0" },
     { name = "silero-vad", specifier = ">=6.2.0" },
     { name = "sounddevice", specifier = ">=0.5.1" },
     { name = "soundfile", specifier = ">=0.13.1" },
@@ -1285,6 +1289,18 @@ sdist = { url = "https://files.pythonhosted.org/packages/70/09/d904a6e96f76ff214
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d3/32/da7f44bcb1105d3e88a0b74ebdca50c59121d2ddf71c9e34ba47df7f3a56/keyring-25.6.0-py3-none-any.whl", hash = "sha256:552a3f7af126ece7ed5c89753650eec89c7eaae8617d0aa4d9ad2b75111266bd", size = 39085, upload-time = "2024-12-25T15:26:44.377Z" },
 ]
+
+[[package]]
+name = "llama-cpp-python"
+version = "0.3.16"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "diskcache" },
+    { name = "jinja2" },
+    { name = "numpy" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e4/b4/c8cd17629ced0b9644a71d399a91145aedef109c0333443bef015e45b704/llama_cpp_python-0.3.16.tar.gz", hash = "sha256:34ed0f9bd9431af045bb63d9324ae620ad0536653740e9bb163a2e1fcb973be6", size = 50688636, upload-time = "2025-08-15T04:58:29.212Z" }
 
 [[package]]
 name = "llvmlite"
