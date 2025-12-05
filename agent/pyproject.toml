@@ -25,6 +25,7 @@ dependencies = [
     "numpy>=2.3.4",
     "llama-cpp-python>=0.3.16",
     "requests>=2.31.0",
+    "f5-tts>=1.1.10",
 ]
 
 [project.optional-dependencies]
@@ -57,5 +58,5 @@ exclude_lines = [
 omit = [
 ]
 
-[too.uv.extra-build-variables]
-"llama-cpp-python" = { CMAKE_ARGS = "-DGGML_CUBLAS=on", FORCE_CMAKE="1" }
+[tool.uv.extra-build-variables]
+"llama-cpp-python" = { CMAKE_ARGS = "-DGGML_CUDA=on", FORCE_CMAKE="1" }

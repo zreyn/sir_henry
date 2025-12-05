@@ -1,11 +1,10 @@
 import requests
 
-# --- Configuration ---
-# Ollama model name (must match what you have in Ollama)
-OLLAMA_MODEL = "llama3.2:3b"  # Adjust this to match your Ollama model name
+# Ollama configuration
 OLLAMA_BASE_URL = "http://localhost:11434"
+OLLAMA_MODEL = "llama3.2:3b"
 
-# System prompt for Sir Henry
+# Static system prompt
 SYSTEM_PROMPT = (
     "You are a dead 15th century pirate named Sir Henry, now only a skeleton still wearing pirate clothes. "
     "You were once the Dread Pirate Roberts, but you slipped on a banana peel and fell overboard to your death. "
@@ -15,90 +14,56 @@ SYSTEM_PROMPT = (
 )
 
 
-class LLMStreamer:
-    def __init__(self, model_name=OLLAMA_MODEL, base_url=OLLAMA_BASE_URL):
-        self.model_name = model_name
-        self.base_url = base_url
-        self.api_url = f"{base_url}/api/chat"
-        
-        # Check if Ollama is running
-        print(f"Connecting to Ollama at {base_url}...")
+def setup_sir_henry():
+    """Return initial message history seeded with the system prompt."""
+    return [{"role": "system", "content": SYSTEM_PROMPT}]
+
+
+def chat_ollama(messages):
+    """Call local Ollama chat API with the accumulated messages."""
+    payload = {
+        "model": OLLAMA_MODEL,
+        "messages": messages,
+        "stream": False,
+        "options": {
+            "temperature": 0.5,
+            "top_p": 0.9,
+            "num_predict": 256,
+            "repeat_penalty": 1.15,
+            "frequency_penalty": 0.6,
+            "presence_penalty": 0.6,
+        },
+    }
+    resp = requests.post(f"{OLLAMA_BASE_URL}/api/chat", json=payload, timeout=120)
+    resp.raise_for_status()
+    data = resp.json()
+    return data.get("message", {}).get("content", "").strip()
+
+
+def text_loop():
+    print("Sir Henry has entered the chat. Type 'end' to end the conversation.")
+    messages = setup_sir_henry()
+
+    while True:
+        user_input = input("> ")
+        if user_input.lower() == "end":
+            print("Sir Henry has left the chat.")
+            break
+
+        messages.append({"role": "user", "content": user_input})
+
         try:
-            response = requests.get(f"{base_url}/api/tags", timeout=5)
-            response.raise_for_status()
-            models = response.json().get("models", [])
-            model_names = [m.get("name", "") for m in models]
-            print(f"Found {len(models)} model(s) in Ollama")
-            
-            # Check if our model is available
-            if model_name not in model_names:
-                print(f"Warning: Model '{model_name}' not found in Ollama.")
-                print(f"Available models: {', '.join(model_names)}")
-                if model_names:
-                    print(f"Using first available model: {model_names[0]}")
-                    self.model_name = model_names[0]
-                else:
-                    raise RuntimeError("No models found in Ollama. Please pull a model first.")
-            else:
-                print(f"Using model: {model_name}")
-        except requests.exceptions.ConnectionError:
-            raise RuntimeError(
-                f"Could not connect to Ollama at {base_url}. "
-                "Make sure Ollama is running: 'ollama serve'"
-            )
+            reply = chat_ollama(messages)
         except Exception as e:
-            raise RuntimeError(f"Error connecting to Ollama: {e}")
-        
-        print("Ollama ready!")
+            print(f"(error calling Ollama: {e})")
+            continue
 
-    def generate(self, prompt):
-        """
-        Generate a complete response from the LLM with the Sir Henry system prompt.
-        Returns the full response as a string.
-        """
-        # Ollama API format
-        payload = {
-            "model": self.model_name,
-            "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": prompt},
-            ],
-            "stream": False,
-            "options": {
-                "temperature": 0.7,
-                "top_p": 0.9,
-                "num_predict": 256,  # max tokens
-            },
-        }
+        # Append assistant reply to history to keep dialogue context
+        messages.append({"role": "assistant", "content": reply})
 
-        try:
-            response = requests.post(self.api_url, json=payload, timeout=120)
-            response.raise_for_status()
-            result = response.json()
-            
-            # Extract the message content
-            message = result.get("message", {})
-            text = message.get("content", "").strip()
-            
-            return text
-        except requests.exceptions.RequestException as e:
-            return f"Error calling Ollama: {e}"
+        print(reply or "(no response)")
 
 
 if __name__ == "__main__":
-    llm = LLMStreamer()
-
-    print(f"--- Connected to Ollama ({llm.model_name}) ---")
-    print("Type 'exit' to quit.\n")
-
-    while True:
-        user_input = input("You: ")
-        if user_input.lower() in ["exit", "quit"]:
-            break
-
-        print("\nSir Henry:")
-        print("-" * 30)
-        response = llm.generate(user_input)
-        print(response)
-        print("-" * 30)
-        print("\n")
+    print("Setting up Sir Henry (Ollama)...")
+    text_loop()
