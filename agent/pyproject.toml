@@ -11,18 +11,21 @@ dependencies = [
     "pydantic-ai>=0.0.23",
     "nest-asyncio>=1.6.0",
     "openai>=1.61.1",
-    "pyttsx3>=2.98",
     "llvmlite>=0.44.0",
     "numba>=0.61.0",
     "torch>=2.6.0",
     "torchvision>=0.21.0",
     "torchaudio>=2.6.0",
     "sounddevice>=0.5.1",
-    "openai-whisper>=20240930",
     "speechrecognition>=3.14.1",
     "soundfile>=0.13.1",
     "pyaudio>=0.2.14",
-    "elevenlabs>=1.51.0",
+    "faster-whisper>=1.2.1",
+    "silero-vad>=6.2.0",
+    "numpy>=2.3.4",
+    "llama-cpp-python>=0.3.16",
+    "requests>=2.31.0",
+    "f5-tts>=1.1.10",
 ]
 
 [project.optional-dependencies]
@@ -54,3 +57,6 @@ exclude_lines = [
 ]
 omit = [
 ]
+
+[tool.uv.extra-build-variables]
+"llama-cpp-python" = { CMAKE_ARGS = "-DGGML_CUDA=on", FORCE_CMAKE="1" }
