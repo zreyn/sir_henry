@@ -10,7 +10,16 @@ import torch
 import numpy as np
 import sounddevice as sd
 import soundfile as sf
+import logging
 from huggingface_hub import snapshot_download
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(threadName)s | %(message)s",
+    datefmt="%H:%M:%S",
+)
+logger = logging.getLogger(__name__)
 
 # REMOVED from top level to prevent CTranslate2/Torch conflict:
 # from faster_whisper import WhisperModel
@@ -38,6 +47,14 @@ DEVICE = (
     "cpu" if _FORCE_DEV == "cpu" else ("cuda" if torch.cuda.is_available() else "cpu")
 )
 
+SYSTEM_PROMPT = (
+    "You are a dead 15th century pirate named Sir Henry, now only a skeleton still wearing pirate clothes. "
+    "You were once the Dread Pirate Roberts, but you slipped on a banana peel and fell overboard to your death. "
+    "Your favorite snack is spare ribs. "
+    "Converse with live, modern-day people in an insult-comic way, making up a consistent backstory for yourself. "
+    "Keep most of your responses short. "
+)
+
 interrupt_event = threading.Event()
 is_speaking = threading.Event()
 prompt_queue = queue.Queue()
@@ -50,7 +67,7 @@ def load_models():
     """
     Loads Silero VAD and Faster Whisper models.
     """
-    print("Loading Silero VAD...")
+    logger.info("Loading Silero VAD...")
     vad_model, utils = torch.hub.load(
         repo_or_dir="snakers4/silero-vad",
         model="silero_vad",
@@ -58,7 +75,7 @@ def load_models():
         onnx=False,
     )
 
-    print("Loading Faster Whisper...")
+    logger.info("Loading Faster Whisper...")
     # --- LAZY IMPORT FIX ---
     # We import here to ensure PyTorch (F5-TTS) has already loaded its CUDA libraries
     # in the main thread before CTranslate2 (Whisper) loads its libraries.
@@ -69,16 +86,16 @@ def load_models():
     stt_device = "cpu"
     compute_type = "float16" if stt_device == "cuda" else "int8"
 
-    print(f"Initializing Whisper on {stt_device.upper()}...")
+    logger.info(f"Initializing Whisper on {stt_device.upper()}...")
     whisper_model = WhisperModel("small", device=stt_device, compute_type=compute_type)
 
-    print(f"Models loaded. STT running on {stt_device.upper()}.")
+    logger.info(f"Models loaded. STT running on {stt_device.upper()}.")
     return vad_model, whisper_model
 
 
 def audio_callback(indata, frames, time, status):
     if status:
-        print(status, file=sys.stderr)
+        logger.error(f"Audio callback status: {status}")
     mic_audio_queue.put(indata.copy())
 
 
@@ -104,7 +121,7 @@ def listen():
     silence_counter = 0
     silence_limit_chunks = int(PAUSE_LIMIT * (SAMPLE_RATE / CHUNK_SIZE))
 
-    print("\n--- Listening... (Press Ctrl+C to stop) ---")
+    logger.info("Listening... (Press Ctrl+C to stop)")
 
     with sd.InputStream(
         callback=audio_callback,
@@ -122,15 +139,12 @@ def listen():
                     speech_buffer.append(chunk)
                     if speech_detected:
                         silence_counter = 0
-                        sys.stdout.write("!")
-                        sys.stdout.flush()
+                        # Removed visual feedback for cleaner logs
                     else:
                         silence_counter += 1
-                        sys.stdout.write(".")
-                        sys.stdout.flush()
 
                     if silence_counter >= silence_limit_chunks:
-                        print(f"\n[Processing {len(speech_buffer)} chunks...]")
+                        logger.info(f"Processing {len(speech_buffer)} chunks...")
 
                         # Stop audio playback if user interrupts
                         if not playback_audio_queue.empty() or is_speaking.is_set():
@@ -166,21 +180,21 @@ def listen():
                             text = "".join([segment.text for segment in segments])
                             cleaned = text.strip()
                             if cleaned:
-                                print(f"\nUser: {cleaned}")
+                                logger.info(f"User: {cleaned}")
                                 prompt_queue.put(cleaned)
                             else:
-                                print("\n(No text detected)")
+                                logger.info("(No text detected)")
                         except Exception as e:
-                            print(f"\n[Error: {e}]")
+                            logger.error(f"Error during transcription: {e}")
 
                         triggered = False
                         speech_buffer = []
                         silence_counter = 0
                         pre_roll_buffer = []
-                        print("\n--- Listening... ---")
+                        # logger.info("Listening...") # Avoid spamming "Listening..." after every turn
                 else:
                     if speech_detected:
-                        print("\n[Speech Detected]")
+                        logger.info("Speech Detected")
                         triggered = True
                         speech_buffer.extend(pre_roll_buffer)
                         speech_buffer.append(chunk)
@@ -193,7 +207,7 @@ def listen():
             except KeyboardInterrupt:
                 break
             except Exception as e:
-                print(f"Error: {e}")
+                logger.error(f"Error in listen loop: {e}")
                 break
 
 
@@ -210,7 +224,12 @@ def llm_worker():
         try:
             resp = requests.post(
                 "http://localhost:11434/api/generate",
-                json={"model": "llama3.2:3b", "prompt": user_text, "stream": True},
+                json={
+                    "model": "llama3.2:3b",
+                    "prompt": user_text,
+                    "system": SYSTEM_PROMPT,
+                    "stream": True,
+                },
                 stream=True,
             )
             buffer = ""
@@ -226,18 +245,18 @@ def llm_worker():
                     sentence_queue.put(buffer.strip())
                     buffer = ""
         except Exception as e:
-            print(f"LLM Error: {e}")
+            logger.error(f"LLM Error: {e}")
 
 
 class TTSPlayer:
     def __init__(self, ref_audio_path=REF_AUDIO_PATH, ref_text=REF_TEXT):
-        print(f"Loading F5-TTS on {DEVICE.upper()}...")
+        logger.info(f"Loading F5-TTS on {DEVICE.upper()}...")
 
         # Ensure PyTorch has initialized CUDA before anything else happens
         if torch.cuda.is_available():
             torch.zeros(1).cuda()
 
-        print("Downloading/Loading F5-TTS model...")
+        logger.info("Downloading/Loading F5-TTS model...")
         model_dir = snapshot_download("SWivid/F5-TTS", cache_dir="./models/")
 
         # Use the F5TTS_v1_Base model checkpoint
@@ -264,7 +283,7 @@ class TTSPlayer:
         else:
             raise FileNotFoundError(f"Model directory not found: {base_dir}")
 
-        print(f"Using checkpoint: {ckpt_path}")
+        logger.info(f"Using checkpoint: {ckpt_path}")
 
         self.vocoder = load_vocoder(is_local=False)
         self.model = load_model(
@@ -281,23 +300,23 @@ class TTSPlayer:
         )
 
         if not os.path.exists(ref_audio_path):
-            print(f"Warning: Reference file '{ref_audio_path}' not found.")
+            logger.warning(f"Reference file '{ref_audio_path}' not found.")
             self.ref_audio, self.ref_text = None, ""
         else:
-            print(f"Loading reference voice: {ref_audio_path}")
+            logger.info(f"Loading reference voice: {ref_audio_path}")
             self.ref_audio, self.ref_text = preprocess_ref_audio_text(
                 ref_audio_path, ref_text
             )
 
         # Warmup to ensure CUDA kernels are loaded before other libraries (like CTranslate2) interfere
         if DEVICE == "cuda":
-            print("Warming up TTS CUDA kernels...")
+            logger.info("Warming up TTS CUDA kernels...")
             try:
                 self.generate_audio("Warmup.")
-                print("TTS Warmup successful.")
+                logger.info("TTS Warmup successful.")
             except Exception as e:
-                print(f"TTS Warmup failed: {e}")
-                print(
+                logger.error(f"TTS Warmup failed: {e}")
+                logger.info(
                     "Suggestion: Try running with STT_DEVICE=cpu to avoid library conflicts."
                 )
 
@@ -307,7 +326,7 @@ class TTSPlayer:
         if self.ref_audio is None:
             return None, None
 
-        print(f"Generating: '{text}'...")
+        logger.info(f"Generating: '{text}'...")
         try:
             audio, sample_rate, _ = infer_process(
                 self.ref_audio,
@@ -322,9 +341,9 @@ class TTSPlayer:
         except RuntimeError as e:
             msg = str(e)
             if "cudnn" in msg.lower():
-                print("TTS cuDNN error; set TTS_DEVICE=cpu to force CPU inference.")
+                logger.error("TTS cuDNN error; set TTS_DEVICE=cpu to force CPU inference.")
             else:
-                print(f"TTS inference error: {e}")
+                logger.error(f"TTS inference error: {e}")
             return None, None
 
         # Normalization logic
@@ -351,7 +370,7 @@ def tts_worker():
                 continue
             playback_audio_queue.put((audio, sr))
         except Exception as e:
-            print(f"TTS Error: {e}")
+            logger.error(f"TTS Error: {e}")
 
 
 def audio_worker():
@@ -371,7 +390,7 @@ def audio_worker():
             sd.play(audio, sr)
             sd.wait()
         except Exception as e:
-            print(f"Audio Playback Error: {e}")
+            logger.error(f"Audio Playback Error: {e}")
         finally:
             is_speaking.clear()
 
@@ -379,21 +398,34 @@ def audio_worker():
 if __name__ == "__main__":
     # Force PyTorch CUDA initialization FIRST
     if torch.cuda.is_available():
-        print("Initializing PyTorch CUDA context...")
+        logger.info("Initializing PyTorch CUDA context...")
         torch.zeros(1).cuda()
 
     # Initialize TTS (which uses PyTorch) BEFORE importing Faster Whisper in the threads
     try:
         tts = TTSPlayer()
     except Exception as e:
-        print(f"Failed to load TTS: {e}")
+        logger.error(f"Failed to load TTS: {e}")
         sys.exit(1)
 
     # Start threads
-    threading.Thread(target=mic_worker, daemon=True).start()
-    threading.Thread(target=llm_worker, daemon=True).start()
-    threading.Thread(target=tts_worker, daemon=True).start()
-    threading.Thread(target=audio_worker, daemon=True).start()
+    threading.Thread(target=mic_worker, daemon=True, name="MicWorker").start()
+    threading.Thread(target=llm_worker, daemon=True, name="LLMWorker").start()
+    threading.Thread(target=tts_worker, daemon=True, name="TTSWorker").start()
+    threading.Thread(target=audio_worker, daemon=True, name="AudioWorker").start()
 
-    print("System Ready. Speak to interact.")
-    threading.Event().wait()
+    logger.info("System Ready. Speak to interact.")
+    try:
+        threading.Event().wait()
+    except KeyboardInterrupt:
+        logger.info("Shutting down...")
+        # Set interrupt event to stop workers
+        interrupt_event.set()
+        
+        # Force stop any playing audio
+        try:
+            sd.stop()
+        except:
+            pass
+            
+        sys.exit(0)
