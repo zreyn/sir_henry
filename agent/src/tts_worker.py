@@ -52,7 +52,7 @@ class TTSPlayer:
 
         logger.info(f"Using checkpoint: {ckpt_path}")
 
-        self.vocoder = load_vocoder(is_local=False)
+        self.vocoder = load_vocoder(is_local=True, local_path="./models/models--charactr--vocos-mel-24khz")
         self.model = load_model(
             model_cls=DiT,
             model_cfg=dict(
@@ -139,3 +139,23 @@ def tts_worker(tts):
             playback_audio_queue.put((audio, sr))
         except Exception as e:
             logger.error(f"TTS Error: {e}")
+
+
+if __name__ == "__main__":
+
+    from audio_worker import audio_worker
+    import threading
+    import time
+
+    threading.Thread(target=audio_worker, daemon=True, name="AudioWorker").start()
+ 
+    tts = TTSPlayer()
+
+    audio, sr = tts.generate_audio("I'm a pirate!")
+    playback_audio_queue.put((audio, sr))
+    audio, sr = tts.generate_audio("My name is Sir Henry.")
+    playback_audio_queue.put((audio, sr))
+    audio, sr = tts.generate_audio("What's your name?")
+    playback_audio_queue.put((audio, sr))
+
+    time.sleep(10)
