@@ -1,3 +1,4 @@
+import time
 import sys
 import threading
 import torch
@@ -28,8 +29,10 @@ def main():
     threading.Thread(target=audio_worker, daemon=True, name="AudioWorker").start()
 
     logger.info("System Ready. Speak to interact.")
+
     try:
-        threading.Event().wait()
+        while True:
+            time.sleep(0.1)
     except KeyboardInterrupt:
         logger.info("Shutting down...")
         interrupt_event.set()
