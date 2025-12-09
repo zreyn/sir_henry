@@ -15,14 +15,17 @@ from config import (
     interrupt_event,
     REF_AUDIO_PATH,
     REF_TEXT,
+    SPEED,
     DEVICE,
     logger,
 )
 
 
 class TTSPlayer:
-    def __init__(self, ref_audio_path=REF_AUDIO_PATH, ref_text=REF_TEXT):
+    def __init__(self, ref_audio_path=REF_AUDIO_PATH, ref_text=REF_TEXT, speed=SPEED):
         logger.info(f"Loading F5-TTS on {DEVICE.upper()}...")
+
+        self.speed = speed
 
         if torch.cuda.is_available():
             torch.zeros(1).cuda()
@@ -101,7 +104,7 @@ class TTSPlayer:
                 self.model,
                 self.vocoder,
                 mel_spec_type="vocos",
-                speed=1.0,
+                speed=self.speed,
                 device=DEVICE,
             )
         except RuntimeError as e:
