@@ -46,6 +46,7 @@ jobs:
 
   test-and-coverage:
     name: Run Tests and Coverage
+    needs: lint
     runs-on: ubuntu-latest
     defaults:
       run:
