@@ -56,7 +56,9 @@ class TTSPlayer:
 
         logger.info(f"Using checkpoint: {ckpt_path}")
 
-        self.vocoder = load_vocoder(is_local=True, local_path="./models/models--charactr--vocos-mel-24khz")
+        self.vocoder = load_vocoder(
+            is_local=True, local_path="./models/models--charactr--vocos-mel-24khz"
+        )
         self.model = load_model(
             model_cls=DiT,
             model_cfg=dict(
@@ -152,7 +154,7 @@ if __name__ == "__main__":
     import time
 
     threading.Thread(target=audio_worker, daemon=True, name="AudioWorker").start()
- 
+
     tts = TTSPlayer()
 
     audio, sr = tts.generate_audio("I'm a pirate!")
