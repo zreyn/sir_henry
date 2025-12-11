@@ -15,14 +15,18 @@ from config import (
     interrupt_event,
     REF_AUDIO_PATH,
     REF_TEXT,
+    SPEED,
+    WARMUP_TEXT,
     DEVICE,
     logger,
 )
 
 
 class TTSPlayer:
-    def __init__(self, ref_audio_path=REF_AUDIO_PATH, ref_text=REF_TEXT):
+    def __init__(self, ref_audio_path=REF_AUDIO_PATH, ref_text=REF_TEXT, speed=SPEED):
         logger.info(f"Loading F5-TTS on {DEVICE.upper()}...")
+
+        self.speed = speed
 
         if torch.cuda.is_available():
             torch.zeros(1).cuda()
@@ -52,7 +56,7 @@ class TTSPlayer:
 
         logger.info(f"Using checkpoint: {ckpt_path}")
 
-        self.vocoder = load_vocoder(is_local=False)
+        self.vocoder = load_vocoder(is_local=True, local_path="./models/models--charactr--vocos-mel-24khz")
         self.model = load_model(
             model_cls=DiT,
             model_cfg=dict(
@@ -78,7 +82,7 @@ class TTSPlayer:
         if DEVICE == "cuda":
             logger.info("Warming up TTS CUDA kernels...")
             try:
-                self.generate_audio("Warmup.")
+                playback_audio_queue.put(self.generate_audio(WARMUP_TEXT))
                 logger.info("TTS Warmup successful.")
             except Exception as e:
                 logger.error(f"TTS Warmup failed: {e}")
@@ -101,7 +105,7 @@ class TTSPlayer:
                 self.model,
                 self.vocoder,
                 mel_spec_type="vocos",
-                speed=1.0,
+                speed=self.speed,
                 device=DEVICE,
             )
         except RuntimeError as e:
@@ -139,3 +143,23 @@ def tts_worker(tts):
             playback_audio_queue.put((audio, sr))
         except Exception as e:
             logger.error(f"TTS Error: {e}")
+
+
+if __name__ == "__main__":
+
+    from audio_worker import audio_worker
+    import threading
+    import time
+
+    threading.Thread(target=audio_worker, daemon=True, name="AudioWorker").start()
+ 
+    tts = TTSPlayer()
+
+    audio, sr = tts.generate_audio("I'm a pirate!")
+    playback_audio_queue.put((audio, sr))
+    audio, sr = tts.generate_audio("My name is Sir Henry.")
+    playback_audio_queue.put((audio, sr))
+    audio, sr = tts.generate_audio("What's your name?")
+    playback_audio_queue.put((audio, sr))
+
+    time.sleep(10)

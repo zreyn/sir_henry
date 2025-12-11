@@ -1,9 +1,10 @@
+import time
 import sys
 import threading
 import torch
 import sounddevice as sd
 from config import logger, interrupt_event
-from stt_worker import mic_worker
+from stt_worker import stt_worker
 from llm_worker import llm_worker
 from tts_worker import tts_worker, TTSPlayer
 from audio_worker import audio_worker
@@ -20,7 +21,7 @@ def main():
         logger.error(f"Failed to load TTS: {e}")
         sys.exit(1)
 
-    threading.Thread(target=mic_worker, daemon=True, name="MicWorker").start()
+    threading.Thread(target=stt_worker, daemon=True, name="STTWorker").start()
     threading.Thread(target=llm_worker, daemon=True, name="LLMWorker").start()
     threading.Thread(
         target=tts_worker, args=(tts,), daemon=True, name="TTSWorker"
@@ -28,8 +29,10 @@ def main():
     threading.Thread(target=audio_worker, daemon=True, name="AudioWorker").start()
 
     logger.info("System Ready. Speak to interact.")
+
     try:
-        threading.Event().wait()
+        while True:
+            time.sleep(0.1)
     except KeyboardInterrupt:
         logger.info("Shutting down...")
         interrupt_event.set()

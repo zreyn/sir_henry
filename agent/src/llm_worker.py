@@ -35,8 +35,14 @@ def llm_worker():
                 data = json.loads(line)
                 token = data.get("response", "")
                 buffer += token
-                if re.search(r"[\\.\\!\\?\\n]$", token):
-                    sentence_queue.put(buffer.strip())
-                    buffer = ""
+                if "[SEP]" in buffer:
+                    parts = buffer.split("[SEP]")
+                    for part in parts[:-1]:
+                        if part.strip():
+                            sentence_queue.put(part.strip())
+                            logger.info(
+                                f"Queued sentence. Queue size: {sentence_queue.qsize()}"
+                            )
+                    buffer = parts[-1]
         except Exception as e:
             logger.error(f"LLM Error: {e}")
