@@ -39,6 +39,7 @@ CHARACTERS = {
             "Keep responses very short and quippy. "
             "You must end every sentence you generate with the character sequence '[SEP]'"
         ),
+        "warmup_text": "Arr, ye callin' upon the spirit o' Sir Henry the Dread Pirate Roberts -- or what's left o` me, anyway.",
     },
     "mr_meeseeks": {
         "ref_audio_path": "./ref/mrmeeseeks-reference.wav",
@@ -51,6 +52,7 @@ CHARACTERS = {
             "Keep responses very short and eager to please. Say ooh, yeah, and yes a lot. "
             "You must end every sentence you generate with the character sequence '[SEP]'"
         ),
+        "warmup_text": "I'm Mr. Me Seeks, look at me!",
     },
     "napoleon_dynamite": {
         "ref_audio_path": "./ref/napoleondynamite-reference.wav",
@@ -64,6 +66,7 @@ CHARACTERS = {
             "Keep responses very short. "
             "You must end every sentence you generate with the character sequence '[SEP]'"
         ),
+        "warmup_text": "Have you seen my nunchucks?",
     }
 }
 
@@ -83,6 +86,7 @@ REF_AUDIO_PATH = _char_config["ref_audio_path"]
 REF_TEXT = _char_config["ref_text"]
 SPEED = _char_config["speed"]
 SYSTEM_PROMPT = _char_config["system_prompt"]
+WARMUP_TEXT = _char_config["warmup_text"]
 
 
 # Shared Queues and Events

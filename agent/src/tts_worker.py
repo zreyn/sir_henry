@@ -16,6 +16,7 @@ from config import (
     REF_AUDIO_PATH,
     REF_TEXT,
     SPEED,
+    WARMUP_TEXT,
     DEVICE,
     logger,
 )
@@ -81,7 +82,7 @@ class TTSPlayer:
         if DEVICE == "cuda":
             logger.info("Warming up TTS CUDA kernels...")
             try:
-                self.generate_audio("Warmup.")
+                playback_audio_queue.put(self.generate_audio(WARMUP_TEXT))
                 logger.info("TTS Warmup successful.")
             except Exception as e:
                 logger.error(f"TTS Warmup failed: {e}")
