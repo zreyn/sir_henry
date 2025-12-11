@@ -167,5 +167,5 @@ def listen():
                 break
 
 
-def mic_worker():
+def stt_worker():
     listen()
