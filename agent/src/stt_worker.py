@@ -89,6 +89,11 @@ def listen():
         while True:
             try:
                 chunk = mic_audio_queue.get()
+                
+                # Ignore microphone input when system is speaking to prevent feedback loop
+                if is_speaking.is_set():
+                    continue
+                
                 speech_detected = is_speech(vad_model, chunk)
 
                 if triggered:
