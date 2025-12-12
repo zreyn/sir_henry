@@ -67,7 +67,7 @@ CHARACTERS = {
             "You must end every sentence you generate with the character sequence '[SEP]'"
         ),
         "warmup_text": "Have you seen my nunchucks?",
-    }
+    },
 }
 
 # Select Character
