@@ -54,3 +54,29 @@ docker compose logs -f agent
 ```
 docker compose down
 ```
+
+For a client, start with the livekit CLI: https://docs.livekit.io/home/cli/
+
+Auto-generate token and join room:
+```
+livekit-cli room join \
+  --url ws://YOUR_SERVER_IP:7880 \
+  --api-key devkey \
+  --api-secret secret \
+  --room my-room \
+  --identity user1
+  ```
+
+For development, you can run without Docker:
+```
+cd agent
+# Create .env file with LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET
+uv sync
+uv run python src/main.py dev
+```
+
+Or, you can rebuild the agent like this:
+```
+docker compose build agent
+docker compose up -d agent
+```

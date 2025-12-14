@@ -9,11 +9,12 @@ requires-python = ">=3.12,<4.0"
 dependencies = [
     "torch>=2.6.0",
     "numpy>=2.3.4",
-    "sounddevice>=0.5.1",
     "faster-whisper>=1.2.1",
-    "silero-vad>=6.2.0",
     "requests>=2.31.0",
     "f5-tts>=1.1.10",
+    "livekit-agents>=1.0.0",
+    "livekit-plugins-silero>=1.0.0",
+    "python-dotenv>=1.0.0",
 ]
 
 [project.optional-dependencies]

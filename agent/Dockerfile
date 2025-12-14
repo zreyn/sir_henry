@@ -1,12 +1,16 @@
 # Use Python 3.12 as base image
 FROM python:3.12-slim
 
-# Install system dependencies for audio and CUDA support
+# Install system dependencies for audio, CUDA, and livekit-rtc
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
     libasound2-dev \
     portaudio19-dev \
+    libx11-6 \
+    libgl1 \
+    libglib2.0-0 \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv
@@ -30,6 +34,7 @@ ENV PYTHONPATH=/app/src:$PYTHONPATH
 # Default environment variables
 ENV CHARACTER=sir_henry
 ENV TTS_DEVICE=""
+ENV STT_DEVICE=cpu
 
-# Run the application
-CMD ["uv", "run", "python", "src/main.py"]
+# Run the livekit agent
+CMD ["uv", "run", "python", "src/main.py", "dev"]

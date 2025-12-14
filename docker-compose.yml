@@ -24,9 +24,11 @@ services:
       retries: 5
       start_period: 30s
 
+
   ollama-init:
     image: curlimages/curl:latest
     container_name: sir_henry_ollama_init
+    network_mode: host  # Use host network to reach ollama
     depends_on:
       ollama:
         condition: service_healthy
@@ -37,20 +39,20 @@ services:
         echo "Waiting for Ollama to be ready..."
         sleep 5
         echo "Pulling llama3.2:3b model..."
-        curl -X POST http://ollama:11434/api/pull -d '{"name": "llama3.2:3b"}'
+        curl -X POST http://localhost:11434/api/pull -d '{"name": "llama3.2:3b"}'
         echo "Model pulled. Keeping it loaded..."
-        curl -X POST http://ollama:11434/api/generate -d '{"model": "llama3.2:3b", "prompt": "test", "keep_alive": -1}'
+        curl -X POST http://localhost:11434/api/generate -d '{"model": "llama3.2:3b", "prompt": "test", "keep_alive": -1}'
         echo "Init complete"
 
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui
-    ports:
-      - "3000:8080"
+    network_mode: host  # Use host network to reach ollama
+    environment:
+      PORT: 3000
+      OLLAMA_BASE_URL: http://localhost:11434
     volumes:
       - webui_data:/app/backend/data
-    environment:
-      OLLAMA_BASE_URL: http://ollama:11434 
     depends_on:
       ollama:
         condition: service_healthy
@@ -58,18 +60,34 @@ services:
         condition: service_completed_successfully
     restart: always
 
+  livekit-server:
+    image: livekit/livekit-server:latest
+    container_name: livekit-server
+    network_mode: host  # Required for WebRTC - avoids NAT issues
+    command: --config /etc/livekit.yaml
+    volumes:
+      - ./livekit/config.yml:/etc/livekit.yaml:ro
+    restart: unless-stopped
+
   agent:
     build:
       context: .
       dockerfile: agent/Dockerfile
     container_name: sir_henry_agent
+    network_mode: host  # Use host network to reach livekit and ollama
     depends_on:
       ollama:
         condition: service_healthy
+      livekit-server:
+        condition: service_started
     environment:
       - CHARACTER=${CHARACTER:-sir_henry}
       - TTS_DEVICE=${TTS_DEVICE:-}
-      - OLLAMA_HOST=ollama:11434
+      - STT_DEVICE=${STT_DEVICE:-cpu}
+      - OLLAMA_HOST=localhost:11434
+      - LIVEKIT_URL=ws://localhost:7880
+      - LIVEKIT_API_KEY=devkey
+      - LIVEKIT_API_SECRET=secret
     volumes:
       # Mount models directory if you have models locally
       - ./agent/models:/app/models:ro
@@ -83,10 +101,16 @@ services:
               count: 1
               capabilities: [gpu]
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 120s  # Allow time for model loading
+
 
 volumes:
   ollama_data:
     driver: local
   webui_data:
     driver: local
-
