@@ -70,7 +70,7 @@ jobs:
 
   test-and-coverage:
     name: Run Tests and Coverage
-    needs: build
+    needs: [build, lint]
     runs-on: ubuntu-latest
     
     steps:

@@ -13,11 +13,6 @@ To install dev dependencies:
 uv sync --extra dev
 ```
 
-Download the main LLM model file and stash it in `agent/models/.`
-```
-wget https://huggingface.co/tensorblock/Llama-3.2-3B-GGUF/resolve/main/Llama-3.2-3B-Q5_K_M.gguf?download=true
-```
-
 This version uses Ollama's service locally, so you have to start it manually. 
 
 Install Ollama with `curl -fsSL https://ollama.com/install.sh | sh`
