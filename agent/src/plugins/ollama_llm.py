@@ -68,7 +68,9 @@ class OllamaLLMStream(llm.LLMStream):
         tools: list[llm.FunctionTool] | None,
         conn_options: llm.LLMConnOptions | None,
     ):
-        super().__init__(llm=llm, chat_ctx=chat_ctx, tools=tools, conn_options=conn_options)
+        super().__init__(
+            llm=llm, chat_ctx=chat_ctx, tools=tools, conn_options=conn_options
+        )
         self._llm = llm
 
     async def _run(self) -> None:
@@ -84,9 +86,13 @@ class OllamaLLMStream(llm.LLMStream):
                 if msg.role == llm.ChatRole.SYSTEM:
                     system_prompt = self._get_text_content(msg)
                 elif msg.role == llm.ChatRole.USER:
-                    messages.append({"role": "user", "content": self._get_text_content(msg)})
+                    messages.append(
+                        {"role": "user", "content": self._get_text_content(msg)}
+                    )
                 elif msg.role == llm.ChatRole.ASSISTANT:
-                    messages.append({"role": "assistant", "content": self._get_text_content(msg)})
+                    messages.append(
+                        {"role": "assistant", "content": self._get_text_content(msg)}
+                    )
 
         # Get the most recent user message as the prompt
         prompt = ""
@@ -121,7 +127,9 @@ class OllamaLLMStream(llm.LLMStream):
         full_response = ""
 
         try:
-            for line in await loop.run_in_executor(None, lambda: list(_stream_request())):
+            for line in await loop.run_in_executor(
+                None, lambda: list(_stream_request())
+            ):
                 data = json.loads(line)
                 token = data.get("response", "")
                 if token:
