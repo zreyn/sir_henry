@@ -1,6 +1,7 @@
 import requests
 import json
 import re
+import os
 from config import (
     prompt_queue,
     sentence_queue,
@@ -8,6 +9,8 @@ from config import (
     SYSTEM_PROMPT,
     logger,
 )
+
+OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "localhost:11434")
 
 
 def llm_worker():
@@ -17,7 +20,7 @@ def llm_worker():
 
         try:
             resp = requests.post(
-                "http://localhost:11434/api/generate",
+                f"http://{OLLAMA_HOST}/api/generate",
                 json={
                     "model": "llama3.2:3b",
                     "prompt": user_text,

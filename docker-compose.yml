@@ -1,27 +1,76 @@
 version: '3.8'
 
 services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: sir_henry_ollama
+    environment:
+      - OLLAMA_KEEP_ALIVE=1
+      - OLLAMA_HOST=0.0.0.0:11434
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  ollama-init:
+    image: curlimages/curl:latest
+    container_name: sir_henry_ollama_init
+    depends_on:
+      ollama:
+        condition: service_healthy
+    command:
+      - sh
+      - -c
+      - |
+        echo "Waiting for Ollama to be ready..."
+        sleep 5
+        echo "Pulling llama3.2:3b model..."
+        curl -X POST http://ollama:11434/api/pull -d '{"name": "llama3.2:3b"}'
+        echo "Model pulled. Keeping it loaded..."
+        curl -X POST http://ollama:11434/api/generate -d '{"model": "llama3.2:3b", "prompt": "test", "keep_alive": -1}'
+        echo "Init complete"
+
   agent:
     build:
       context: .
       dockerfile: agent/Dockerfile
     container_name: sir_henry_agent
+    depends_on:
+      ollama:
+        condition: service_healthy
     environment:
       - CHARACTER=${CHARACTER:-sir_henry}
       - TTS_DEVICE=${TTS_DEVICE:-}
+      - OLLAMA_HOST=ollama:11434
     volumes:
       # Mount models directory if you have models locally
       - ./agent/models:/app/models:ro
       # Optional: mount reference audio if you want to modify without rebuild
       - ./agent/ref:/app/ref:ro
-    # Uncomment if you need GPU support
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
     restart: unless-stopped
 
-  # Add more services here as needed
+volumes:
+  ollama_data:
+    driver: local
+
