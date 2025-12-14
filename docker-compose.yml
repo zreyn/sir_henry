@@ -8,7 +8,7 @@ services:
       - OLLAMA_KEEP_ALIVE=1
       - OLLAMA_HOST=0.0.0.0:11434
     ports:
-      - "11434:11434"
+      - "0.0.0.0:11434:11434" # 11434:11434 alone leaves it open just to the docker network
     volumes:
       - ollama_data:/root/.ollama
     deploy:
