@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  agent:
+    build:
+      context: .
+      dockerfile: agent/Dockerfile
+    container_name: sir_henry_agent
+    environment:
+      - CHARACTER=${CHARACTER:-sir_henry}
+      - TTS_DEVICE=${TTS_DEVICE:-}
+    volumes:
+      # Mount models directory if you have models locally
+      - ./agent/models:/app/models:ro
+      # Optional: mount reference audio if you want to modify without rebuild
+      - ./agent/ref:/app/ref:ro
+    # Uncomment if you need GPU support
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    restart: unless-stopped
+
+  # Add more services here as needed

@@ -13,77 +13,66 @@ jobs:
   lint:
     name: Lint with Black
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: agent
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
         with:
-          python-version: '3.12'
+          context: .
+          file: ./agent/Dockerfile
+          push: false
+          tags: sir-henry-agent:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          version: "latest"
-
-      - name: Install system dependencies
+      - name: Install dev dependencies and run Black
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libasound2-dev portaudio19-dev
-
-      - name: Install dependencies
-        run: |
-          uv sync --extra dev
-
-      - name: Run Black
-        run: |
-          uv run black --check src tests
+          docker run --rm \
+            -w /app \
+            sir-henry-agent:test \
+            sh -c "uv sync --extra dev && uv run black --check src tests"
 
   test-and-coverage:
     name: Run Tests and Coverage
     needs: lint
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: agent
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
         with:
-          python-version: '3.12'
+          context: .
+          file: ./agent/Dockerfile
+          push: false
+          tags: sir-henry-agent:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          version: "latest"
-
-      - name: Install system dependencies
+      - name: Install dev dependencies and run pytest
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libasound2-dev portaudio19-dev
-
-      - name: Install dependencies
-        run: |
-          uv sync --extra dev
-
-      - name: Run pytest with coverage
-        run: |
-          uv run pytest tests/ -v --cov=src --cov-report=term-missing --cov-report=xml
+          docker run --rm \
+            -v "${{ github.workspace }}/agent":/output \
+            -w /app \
+            sir-henry-agent:test \
+            sh -c "uv sync --extra dev && uv run pytest tests/ -v --cov=src --cov-report=term-missing --cov-report=xml:/output/coverage.xml"
 
       - name: Upload coverage to Codecov (optional)
         if: always()
         uses: codecov/codecov-action@v4
         with:
-          file: ./coverage.xml
+          file: ./agent/coverage.xml
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
