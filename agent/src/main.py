@@ -26,6 +26,7 @@ from config import (
     STT_DEVICE,
     OLLAMA_HOST,
     OLLAMA_MODEL,
+    OLLAMA_TEMPERATURE,
 )
 
 
@@ -102,6 +103,7 @@ async def entrypoint(ctx: JobContext):
         llm=lk_openai.LLM.with_ollama(
             model=OLLAMA_MODEL,
             base_url=f"http://{OLLAMA_HOST}/v1",
+            temperature=OLLAMA_TEMPERATURE,
         ),
     )
 

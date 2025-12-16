@@ -29,6 +29,7 @@ STT_DEVICE = os.environ.get("STT_DEVICE", "cpu").lower()
 # Ollama Configuration
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "localhost:11434")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.2:3b")
+OLLAMA_TEMPERATURE = float(os.environ.get("OLLAMA_TEMPERATURE", "0.8"))
 
 # Character Configuration
 CHARACTERS = {
