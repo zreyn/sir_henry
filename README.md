@@ -76,12 +76,28 @@ lk token create \
   --valid-for 24h
 ```
 
-For development, you can run without Docker:
+Dispatch an agent manually:
 ```
-cd agent
-# Create .env file with LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET
-uv sync
-uv run python src/main.py dev
+lk dispatch create --url ws://localhost:7880 --api-key devkey --api-secret secret --room testing --agent-name voice-agent
+```
+
+List the rooms:
+```
+lk room list --url ws://localhost:7880 --api-key devkey --api-secret secret
+```
+
+For development, you can use a docker-compose.override.yml file to mount the agent code into the voice-agent container for quicker iteration:
+```
+services:
+  voice-agent:
+    volumes:
+      # Mount source code for live editing (overrides copied code in image)
+      - ./agent/src:/app/src:ro
+      # Keep existing mounts from main compose file
+      - ./agent/models:/app/models
+      - ./agent/ref:/app/ref:ro
+    # Use 'start' mode for development (auto-reloads on file changes in dev mode)
+    command: ["uv", "run", "python", "src/main.py", "dev"]
 ```
 
 Or, you can rebuild the agent like this:

@@ -122,6 +122,7 @@ def main():
     worker = agents.WorkerOptions(
         entrypoint_fnc=entrypoint,
         prewarm_fnc=prewarm,
+        agent_name="voice-agent",
     )
 
     # Run the agent
