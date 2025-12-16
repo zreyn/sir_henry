@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
-from typing import AsyncIterator
 
 import numpy as np
 
@@ -81,7 +80,7 @@ class FasterWhisperSTT(stt.STT):
         buffer: utils.AudioBuffer,
         *,
         language: str | None = None,
-        conn_options: utils.http_context.ConnOptions | None = None,
+        conn_options: stt.STTConnOptions | None = None,
     ) -> stt.SpeechEvent:
         """Transcribe audio buffer using Faster-Whisper."""
         self._ensure_loaded()
@@ -121,37 +120,14 @@ class FasterWhisperSTT(stt.STT):
             ],
         )
 
-    def recognize(
+    async def recognize(
         self,
         buffer: utils.AudioBuffer,
         *,
         language: str | None = None,
-        conn_options: utils.http_context.ConnOptions | None = None,
-    ) -> "RecognizeStream":
-        """Return a recognize stream for the given audio buffer."""
-        return RecognizeStream(
-            stt=self, buffer=buffer, language=language, conn_options=conn_options
+        conn_options: stt.STTConnOptions | None = None,
+    ) -> stt.SpeechEvent:
+        """Recognize speech from the given audio buffer."""
+        return await self._recognize_impl(
+            buffer, language=language, conn_options=conn_options
         )
-
-
-class RecognizeStream(stt.RecognizeStream):
-    """Recognition stream for Faster-Whisper STT."""
-
-    def __init__(
-        self,
-        *,
-        stt: FasterWhisperSTT,
-        buffer: utils.AudioBuffer,
-        language: str | None,
-        conn_options: utils.http_context.ConnOptions | None,
-    ):
-        super().__init__(stt=stt, conn_options=conn_options)
-        self._buffer = buffer
-        self._language = language
-
-    async def _run(self) -> None:
-        """Process the audio buffer and emit the result."""
-        event = await self._stt._recognize_impl(
-            self._buffer, language=self._language, conn_options=self._conn_options
-        )
-        self._event_ch.send_nowait(event)

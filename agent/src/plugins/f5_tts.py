@@ -186,7 +186,7 @@ class ChunkedStream(tts.ChunkedStream):
         super().__init__(tts=tts, input_text=input_text, conn_options=conn_options)
         self._tts = tts
 
-    async def _run(self) -> None:
+    async def _run(self, output_emitter: tts.ChunkedStream.OutputEmitter) -> None:
         """Generate audio and yield as a single chunk."""
         request_id = utils.shortuuid()
 
@@ -204,7 +204,7 @@ class ChunkedStream(tts.ChunkedStream):
         # Convert float32 [-1, 1] to int16
         audio_int16 = (audio * 32767).astype(np.int16)
 
-        self._event_ch.send_nowait(
+        output_emitter.push(
             tts.SynthesizedAudio(
                 request_id=request_id,
                 frame=utils.audio.AudioFrame(
