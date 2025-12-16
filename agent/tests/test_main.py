@@ -1,7 +1,5 @@
 """Unit tests for main.py module."""
 
-import datetime
-import os
 import sys
 from unittest.mock import MagicMock, patch, AsyncMock
 
@@ -19,9 +17,6 @@ def mock_dependencies():
     mock_livekit.agents.Agent = MagicMock
     mock_livekit.agents.JobContext = MagicMock
     mock_livekit.agents.JobProcess = MagicMock
-    mock_livekit.agents.RunContext = MagicMock
-    mock_livekit.agents.llm = MagicMock()
-    mock_livekit.agents.llm.function_tool = lambda f: f
     mock_livekit.agents.WorkerOptions = MagicMock
     mock_livekit.agents.cli = MagicMock()
 
@@ -42,7 +37,6 @@ def mock_dependencies():
         {
             "livekit": mock_livekit,
             "livekit.agents": mock_livekit.agents,
-            "livekit.agents.llm": mock_livekit.agents.llm,
             "livekit.plugins": MagicMock(),
             "livekit.plugins.openai": mock_lk_openai,
             "livekit.plugins.silero": mock_silero,
@@ -110,39 +104,6 @@ class TestVoiceAgent:
         call_args = agent.session.generate_reply.call_args
         assert "instructions" in call_args.kwargs
         assert "Hello" in call_args.kwargs["instructions"]
-
-    @pytest.mark.asyncio
-    async def test_get_current_date_and_time(self, mock_dependencies):
-        """Test get_current_date_and_time tool."""
-        if "main" in sys.modules:
-            del sys.modules["main"]
-
-        from main import VoiceAgent
-
-        agent = VoiceAgent()
-        mock_context = MagicMock()
-
-        result = await agent.get_current_date_and_time(mock_context)
-
-        assert "current date and time" in result.lower()
-        # Should contain date format elements
-        assert any(
-            month in result
-            for month in [
-                "January",
-                "February",
-                "March",
-                "April",
-                "May",
-                "June",
-                "July",
-                "August",
-                "September",
-                "October",
-                "November",
-                "December",
-            ]
-        )
 
 
 class TestPrewarm:

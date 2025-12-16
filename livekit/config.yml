@@ -7,7 +7,6 @@ rtc:
   port_range_start: 50000
   port_range_end: 50100
   use_external_ip: false
-  node_ip: 192.168.86.48
   use_ice_lite: true
   enable_loopback_candidate: false
 

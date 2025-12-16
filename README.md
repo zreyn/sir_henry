@@ -105,3 +105,8 @@ Or, you can rebuild the agent like this:
 docker compose build agent
 docker compose up -d agent
 ```
+
+If you want to use the `.env.user` file for settings:
+```
+docker compose --env-file .env.user up
+```

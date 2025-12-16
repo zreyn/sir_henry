@@ -5,13 +5,11 @@ A voice AI agent using LiveKit Agents framework with custom F5-TTS and Faster-Wh
 """
 
 import logging
-import datetime
 
 from dotenv import load_dotenv
 
 from livekit import agents
-from livekit.agents import AgentSession, Agent, JobContext, JobProcess, RunContext
-from livekit.agents.llm import function_tool
+from livekit.agents import AgentSession, Agent, JobContext, JobProcess
 from livekit.plugins import openai as lk_openai
 from livekit.plugins import silero
 
@@ -46,12 +44,6 @@ class VoiceAgent(Agent):
         self.session.generate_reply(
             instructions=f"Introduce yourself briefly with this greeting: '{GREETING}'."
         )
-
-    @function_tool
-    async def get_current_date_and_time(self, context: RunContext) -> str:
-        """Get the current date and time."""
-        current_datetime = datetime.datetime.now().strftime("%B %d, %Y at %I:%M %p")
-        return f"The current date and time is {current_datetime}"
 
 
 def prewarm(proc: JobProcess):

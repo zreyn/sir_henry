@@ -6,9 +6,6 @@ docker-compose.override.yml
 # wav files
 **/last_output.wav
 
-# env files
-*.env.*
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -146,6 +143,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+!.env.user
 
 # Spyder project settings
 .spyderproject

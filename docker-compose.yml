@@ -64,7 +64,7 @@ services:
     image: livekit/livekit-server:latest
     container_name: livekit-server
     network_mode: host  # Required for WebRTC - avoids NAT issues
-    command: --config /etc/livekit.yaml
+    command: --config /etc/livekit.yaml --node-ip ${LIVEKIT_NODE_IP}
     volumes:
       - ./livekit/config.yml:/etc/livekit.yaml:ro
     restart: unless-stopped
