@@ -1,171 +1,214 @@
 """Unit tests for config.py module."""
 
-import os
-import pytest
-from unittest.mock import patch, MagicMock
+import importlib
 import logging
-import queue
-import threading
+import os
+import sys
+from unittest.mock import patch, MagicMock
 
 
-def test_logging_configuration():
-    """Test that logging is configured correctly."""
-    import config
+class TestLogging:
+    """Test logging configuration."""
 
-    assert isinstance(config.logger, logging.Logger)
-    assert config.logger.name == "config"
+    def test_logger_exists(self):
+        """Test that logger is configured."""
+        import config
 
-
-def test_sample_rate_and_chunk_size():
-    """Test STT configuration constants."""
-    import config
-
-    assert config.SAMPLE_RATE == 16000
-    assert config.CHUNK_SIZE == 512
-    assert config.VAD_THRESHOLD == 0.5
-    assert config.PAUSE_LIMIT == 0.8
-    assert config.PRE_ROLL_MS == 200
+        assert isinstance(config.logger, logging.Logger)
+        assert config.logger.name == "sir_henry"
 
 
-@patch.dict(os.environ, {}, clear=True)
-@patch("config.torch.cuda.is_available", return_value=True)
-def test_device_selection_cuda_available(mock_cuda):
-    """Test device selection when CUDA is available."""
-    # Need to reload config to test device selection
-    import importlib
-    import sys
+class TestLiveKitConfig:
+    """Test LiveKit configuration."""
 
-    if "config" in sys.modules:
-        importlib.reload(sys.modules["config"])
-    import config
+    def test_default_livekit_url(self):
+        """Test default LiveKit URL."""
+        with patch.dict(os.environ, {}, clear=True):
+            if "config" in sys.modules:
+                del sys.modules["config"]
+            import config
 
-    assert config.DEVICE == "cuda"
+            assert config.LIVEKIT_URL == "ws://localhost:7880"
 
+    def test_custom_livekit_url(self):
+        """Test custom LiveKit URL from environment."""
+        with patch.dict(os.environ, {"LIVEKIT_URL": "ws://custom:9999"}, clear=True):
+            if "config" in sys.modules:
+                del sys.modules["config"]
+            import config
 
-@patch.dict(os.environ, {"TTS_DEVICE": "cpu"}, clear=False)
-@patch("config.torch.cuda.is_available", return_value=True)
-def test_device_selection_force_cpu(mock_cuda):
-    """Test device selection when TTS_DEVICE=cpu is set."""
-    import importlib
-    import sys
+            assert config.LIVEKIT_URL == "ws://custom:9999"
 
-    if "config" in sys.modules:
-        importlib.reload(sys.modules["config"])
-    import config
+    def test_default_api_key_and_secret(self):
+        """Test default API key and secret."""
+        with patch.dict(os.environ, {}, clear=True):
+            if "config" in sys.modules:
+                del sys.modules["config"]
+            import config
 
-    assert config.DEVICE == "cpu"
-
-
-@patch.dict(os.environ, {}, clear=True)
-@patch("config.torch.cuda.is_available", return_value=False)
-def test_device_selection_cuda_unavailable(mock_cuda):
-    """Test device selection when CUDA is not available."""
-    import importlib
-    import sys
-
-    if "config" in sys.modules:
-        importlib.reload(sys.modules["config"])
-    import config
-
-    assert config.DEVICE == "cpu"
+            assert config.LIVEKIT_API_KEY == "devkey"
+            assert config.LIVEKIT_API_SECRET == "secret"
 
 
-def test_characters_dict():
-    """Test that CHARACTERS dictionary has expected structure."""
-    import config
+class TestDeviceConfig:
+    """Test device configuration."""
 
-    assert "sir_henry" in config.CHARACTERS
-    assert "mr_meeseeks" in config.CHARACTERS
-    assert "napoleon_dynamite" in config.CHARACTERS
+    @patch("torch.cuda.is_available", return_value=True)
+    def test_device_cuda_available(self, mock_cuda):
+        """Test device selection when CUDA is available."""
+        with patch.dict(os.environ, {}, clear=True):
+            if "config" in sys.modules:
+                del sys.modules["config"]
+            import config
 
-    for char_name, char_config in config.CHARACTERS.items():
-        assert "ref_audio_path" in char_config
-        assert "ref_text" in char_config
-        assert "speed" in char_config
-        assert "system_prompt" in char_config
-        assert "warmup_text" in char_config
+            assert config.DEVICE == "cuda"
 
+    @patch("torch.cuda.is_available", return_value=False)
+    def test_device_cuda_unavailable(self, mock_cuda):
+        """Test device selection when CUDA is not available."""
+        with patch.dict(os.environ, {}, clear=True):
+            if "config" in sys.modules:
+                del sys.modules["config"]
+            import config
 
-@patch.dict(os.environ, {"CHARACTER": "sir_henry"}, clear=False)
-def test_character_selection_valid():
-    """Test character selection with valid character."""
-    import importlib
-    import sys
+            assert config.DEVICE == "cpu"
 
-    if "config" in sys.modules:
-        importlib.reload(sys.modules["config"])
-    import config
+    @patch("torch.cuda.is_available", return_value=True)
+    def test_device_force_cpu(self, mock_cuda):
+        """Test device selection when TTS_DEVICE=cpu is set."""
+        with patch.dict(os.environ, {"TTS_DEVICE": "cpu"}, clear=True):
+            if "config" in sys.modules:
+                del sys.modules["config"]
+            import config
 
-    assert config.SELECTED_CHARACTER == "sir_henry"
-    assert config.REF_AUDIO_PATH == "./ref/sirhenry-reference.wav"
-    assert config.REF_TEXT == config.CHARACTERS["sir_henry"]["ref_text"]
-    assert config.SPEED == 1.0
-    assert config.SYSTEM_PROMPT == config.CHARACTERS["sir_henry"]["system_prompt"]
-    assert config.WARMUP_TEXT == config.CHARACTERS["sir_henry"]["warmup_text"]
+            assert config.DEVICE == "cpu"
 
+    def test_stt_device_default(self):
+        """Test STT device defaults to cpu."""
+        with patch.dict(os.environ, {}, clear=True):
+            if "config" in sys.modules:
+                del sys.modules["config"]
+            import config
 
-@patch.dict(os.environ, {"CHARACTER": "mr_meeseeks"}, clear=False)
-def test_character_selection_mr_meeseeks():
-    """Test character selection with mr_meeseeks."""
-    import importlib
-    import sys
+            assert config.STT_DEVICE == "cpu"
 
-    if "config" in sys.modules:
-        importlib.reload(sys.modules["config"])
-    import config
+    def test_stt_device_custom(self):
+        """Test STT device from environment."""
+        with patch.dict(os.environ, {"STT_DEVICE": "CUDA"}, clear=True):
+            if "config" in sys.modules:
+                del sys.modules["config"]
+            import config
 
-    assert config.SELECTED_CHARACTER == "mr_meeseeks"
-    assert config.REF_AUDIO_PATH == "./ref/mrmeeseeks-reference.wav"
-
-
-@patch.dict(os.environ, {"CHARACTER": "napoleon_dynamite"}, clear=False)
-def test_character_selection_napoleon():
-    """Test character selection with napoleon_dynamite."""
-    import importlib
-    import sys
-
-    if "config" in sys.modules:
-        importlib.reload(sys.modules["config"])
-    import config
-
-    assert config.SELECTED_CHARACTER == "napoleon_dynamite"
-    assert config.SPEED == 0.3
+            assert config.STT_DEVICE == "cuda"
 
 
-@patch.dict(os.environ, {"CHARACTER": "invalid_character"}, clear=False)
-def test_character_selection_invalid_defaults():
-    """Test character selection with invalid character defaults to sir_henry."""
-    import importlib
-    import sys
+class TestOllamaConfig:
+    """Test Ollama configuration."""
 
-    if "config" in sys.modules:
-        importlib.reload(sys.modules["config"])
-    import config
+    def test_default_ollama_host(self):
+        """Test default Ollama host."""
+        with patch.dict(os.environ, {}, clear=True):
+            if "config" in sys.modules:
+                del sys.modules["config"]
+            import config
 
-    assert config.SELECTED_CHARACTER == "sir_henry"
+            assert config.OLLAMA_HOST == "localhost:11434"
+
+    def test_custom_ollama_host(self):
+        """Test custom Ollama host."""
+        with patch.dict(os.environ, {"OLLAMA_HOST": "ollama:11434"}, clear=True):
+            if "config" in sys.modules:
+                del sys.modules["config"]
+            import config
+
+            assert config.OLLAMA_HOST == "ollama:11434"
+
+    def test_default_ollama_model(self):
+        """Test default Ollama model."""
+        with patch.dict(os.environ, {}, clear=True):
+            if "config" in sys.modules:
+                del sys.modules["config"]
+            import config
+
+            assert config.OLLAMA_MODEL == "llama3.2:3b"
 
 
-@patch.dict(os.environ, {"CHARACTER": "INVALID"}, clear=False)
-def test_character_selection_case_insensitive():
-    """Test character selection is case insensitive."""
-    import importlib
-    import sys
+class TestCharacterConfig:
+    """Test character configuration."""
 
-    if "config" in sys.modules:
-        importlib.reload(sys.modules["config"])
-    import config
+    def test_characters_dict_structure(self):
+        """Test CHARACTERS dictionary has expected structure."""
+        import config
 
-    # Should default to sir_henry since 'invalid' (lowercase) is not in CHARACTERS
-    assert config.SELECTED_CHARACTER == "sir_henry"
+        assert "sir_henry" in config.CHARACTERS
+        assert "mr_meeseeks" in config.CHARACTERS
+        assert "napoleon_dynamite" in config.CHARACTERS
 
+        for char_name, char_config in config.CHARACTERS.items():
+            assert "ref_audio_path" in char_config
+            assert "ref_text" in char_config
+            assert "speed" in char_config
+            assert "system_prompt" in char_config
+            assert "greeting" in char_config
 
-def test_shared_queues_and_events():
-    """Test that shared queues and events are initialized."""
-    import config
+    def test_character_selection_sir_henry(self):
+        """Test character selection with sir_henry."""
+        with patch.dict(os.environ, {"CHARACTER": "sir_henry"}, clear=True):
+            if "config" in sys.modules:
+                del sys.modules["config"]
+            import config
 
-    assert isinstance(config.interrupt_event, threading.Event)
-    assert isinstance(config.is_speaking, threading.Event)
-    assert isinstance(config.prompt_queue, queue.Queue)
-    assert isinstance(config.sentence_queue, queue.Queue)
-    assert isinstance(config.mic_audio_queue, queue.Queue)
-    assert isinstance(config.playback_audio_queue, queue.Queue)
+            assert config.SELECTED_CHARACTER == "sir_henry"
+            assert config.REF_AUDIO_PATH == "./ref/sirhenry-reference.wav"
+            assert config.SPEED == 1.0
+
+    def test_character_selection_mr_meeseeks(self):
+        """Test character selection with mr_meeseeks."""
+        with patch.dict(os.environ, {"CHARACTER": "mr_meeseeks"}, clear=True):
+            if "config" in sys.modules:
+                del sys.modules["config"]
+            import config
+
+            assert config.SELECTED_CHARACTER == "mr_meeseeks"
+            assert config.REF_AUDIO_PATH == "./ref/mrmeeseeks-reference.wav"
+
+    def test_character_selection_napoleon_dynamite(self):
+        """Test character selection with napoleon_dynamite."""
+        with patch.dict(os.environ, {"CHARACTER": "napoleon_dynamite"}, clear=True):
+            if "config" in sys.modules:
+                del sys.modules["config"]
+            import config
+
+            assert config.SELECTED_CHARACTER == "napoleon_dynamite"
+            assert config.SPEED == 0.3
+
+    def test_character_selection_invalid_defaults(self):
+        """Test character selection with invalid character defaults to sir_henry."""
+        with patch.dict(os.environ, {"CHARACTER": "invalid_character"}, clear=True):
+            if "config" in sys.modules:
+                del sys.modules["config"]
+            import config
+
+            assert config.SELECTED_CHARACTER == "sir_henry"
+
+    def test_character_selection_case_insensitive(self):
+        """Test character selection converts to lowercase."""
+        with patch.dict(os.environ, {"CHARACTER": "MR_MEESEEKS"}, clear=True):
+            if "config" in sys.modules:
+                del sys.modules["config"]
+            import config
+
+            assert config.SELECTED_CHARACTER == "mr_meeseeks"
+
+    def test_character_exports(self):
+        """Test that character config exports are correct."""
+        with patch.dict(os.environ, {"CHARACTER": "sir_henry"}, clear=True):
+            if "config" in sys.modules:
+                del sys.modules["config"]
+            import config
+
+            assert config.REF_TEXT == config.CHARACTERS["sir_henry"]["ref_text"]
+            assert (
+                config.SYSTEM_PROMPT == config.CHARACTERS["sir_henry"]["system_prompt"]
+            )
+            assert config.GREETING == config.CHARACTERS["sir_henry"]["greeting"]

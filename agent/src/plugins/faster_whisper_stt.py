@@ -89,9 +89,6 @@ class FasterWhisperSTT(stt.STT):
         audio_data = np.frombuffer(buffer.data, dtype=np.int16)
         audio_float = audio_data.astype(np.float32) / 32768.0
 
-        if len(audio_float.shape) > 1:
-            audio_float = audio_float.squeeze()
-
         # Run transcription in thread pool
         loop = asyncio.get_event_loop()
         segments, info = await loop.run_in_executor(

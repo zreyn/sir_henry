@@ -1,248 +1,229 @@
 """Unit tests for main.py module."""
 
+import datetime
+import os
+import sys
+from unittest.mock import MagicMock, patch, AsyncMock
+
 import pytest
-from unittest.mock import patch, MagicMock, Mock
-import threading
-import time
 
 
-@patch("main.tts_worker")
-@patch("main.llm_worker")
-@patch("main.stt_worker")
-@patch("main.audio_worker")
-@patch("main.TTSPlayer")
-@patch("main.torch.cuda.is_available", return_value=True)
-@patch("main.torch.zeros")
-@patch("main.sd.stop")
-@patch("main.time.sleep")
-@patch("main.logger")
-def test_main_cuda_available(
-    mock_logger,
-    mock_sleep,
-    mock_sd_stop,
-    mock_torch_zeros,
-    mock_cuda,
-    mock_tts_class,
-    mock_audio_worker,
-    mock_stt_worker,
-    mock_llm_worker,
-    mock_tts_worker,
-):
-    """Test main() when CUDA is available."""
-    mock_tts_instance = MagicMock()
-    mock_tts_class.return_value = mock_tts_instance
+# Mock all heavy dependencies before importing main
+@pytest.fixture(autouse=True)
+def mock_dependencies():
+    """Mock all heavy dependencies."""
+    # Create mock modules
+    mock_livekit = MagicMock()
+    mock_livekit.agents = MagicMock()
+    mock_livekit.agents.AgentSession = MagicMock
+    mock_livekit.agents.Agent = MagicMock
+    mock_livekit.agents.JobContext = MagicMock
+    mock_livekit.agents.JobProcess = MagicMock
+    mock_livekit.agents.RunContext = MagicMock
+    mock_livekit.agents.llm = MagicMock()
+    mock_livekit.agents.llm.function_tool = lambda f: f
+    mock_livekit.agents.WorkerOptions = MagicMock
+    mock_livekit.agents.cli = MagicMock()
 
-    # Mock sleep to raise KeyboardInterrupt after first call
-    call_count = [0]
+    mock_lk_openai = MagicMock()
+    mock_lk_openai.LLM = MagicMock()
+    mock_lk_openai.LLM.with_ollama = MagicMock(return_value=MagicMock())
 
-    def sleep_side_effect(*args):
-        call_count[0] += 1
-        if call_count[0] == 1:
-            raise KeyboardInterrupt()
+    mock_silero = MagicMock()
+    mock_silero.VAD = MagicMock()
+    mock_silero.VAD.load = MagicMock(return_value=MagicMock())
 
-    mock_sleep.side_effect = sleep_side_effect
+    mock_plugins = MagicMock()
+    mock_plugins.F5TTS = MagicMock(return_value=MagicMock())
+    mock_plugins.FasterWhisperSTT = MagicMock(return_value=MagicMock())
 
-    from main import main
+    with patch.dict(
+        "sys.modules",
+        {
+            "livekit": mock_livekit,
+            "livekit.agents": mock_livekit.agents,
+            "livekit.agents.llm": mock_livekit.agents.llm,
+            "livekit.plugins": MagicMock(),
+            "livekit.plugins.openai": mock_lk_openai,
+            "livekit.plugins.silero": mock_silero,
+            "dotenv": MagicMock(),
+            "plugins": mock_plugins,
+        },
+    ):
+        # Also mock config to avoid torch import issues
+        mock_config = MagicMock()
+        mock_config.logger = MagicMock()
+        mock_config.SYSTEM_PROMPT = "Test prompt"
+        mock_config.GREETING = "Hello"
+        mock_config.REF_AUDIO_PATH = "/path/to/ref.wav"
+        mock_config.REF_TEXT = "Reference text"
+        mock_config.SPEED = 1.0
+        mock_config.DEVICE = "cpu"
+        mock_config.STT_DEVICE = "cpu"
+        mock_config.OLLAMA_HOST = "localhost:11434"
+        mock_config.OLLAMA_MODEL = "llama3.2:3b"
 
-    with pytest.raises(SystemExit) as exc_info:
-        main()
-
-    assert exc_info.value.code == 0
-    mock_logger.info.assert_any_call("Initializing PyTorch CUDA context...")
-    mock_torch_zeros.assert_called_once()
-    mock_tts_class.assert_called_once()
-    mock_logger.info.assert_any_call("System Ready. Speak to interact.")
-    mock_logger.info.assert_any_call("Shutting down...")
-    mock_sd_stop.assert_called_once()
-
-
-@patch("main.tts_worker")
-@patch("main.llm_worker")
-@patch("main.stt_worker")
-@patch("main.audio_worker")
-@patch("main.TTSPlayer")
-@patch("main.torch.cuda.is_available", return_value=False)
-@patch("main.sd.stop")
-@patch("main.time.sleep")
-@patch("main.logger")
-def test_main_cuda_unavailable(
-    mock_logger,
-    mock_sleep,
-    mock_sd_stop,
-    mock_cuda,
-    mock_tts_class,
-    mock_audio_worker,
-    mock_stt_worker,
-    mock_llm_worker,
-    mock_tts_worker,
-):
-    """Test main() when CUDA is not available."""
-    mock_tts_instance = MagicMock()
-    mock_tts_class.return_value = mock_tts_instance
-
-    call_count = [0]
-
-    def sleep_side_effect(*args):
-        call_count[0] += 1
-        if call_count[0] == 1:
-            raise KeyboardInterrupt()
-
-    mock_sleep.side_effect = sleep_side_effect
-
-    from main import main
-
-    with pytest.raises(SystemExit) as exc_info:
-        main()
-
-    assert exc_info.value.code == 0
-    # Should not call torch.zeros when CUDA is not available
-    mock_tts_class.assert_called_once()
+        with patch.dict("sys.modules", {"config": mock_config}):
+            yield {
+                "livekit": mock_livekit,
+                "lk_openai": mock_lk_openai,
+                "silero": mock_silero,
+                "plugins": mock_plugins,
+                "config": mock_config,
+            }
 
 
-@patch("main.tts_worker")
-@patch("main.llm_worker")
-@patch("main.stt_worker")
-@patch("main.audio_worker")
-@patch("main.TTSPlayer")
-@patch("main.torch.cuda.is_available", return_value=True)
-@patch("main.torch.zeros")
-@patch("main.sd.stop")
-@patch("main.time.sleep")
-@patch("main.logger")
-@patch("sys.exit")
-def test_main_tts_init_failure(
-    mock_sys_exit,
-    mock_logger,
-    mock_sleep,
-    mock_sd_stop,
-    mock_torch_zeros,
-    mock_cuda,
-    mock_tts_class,
-    mock_audio_worker,
-    mock_stt_worker,
-    mock_llm_worker,
-    mock_tts_worker,
-):
-    """Test main() when TTS initialization fails."""
-    mock_tts_class.side_effect = Exception("TTS load error")
-    # Make sys.exit raise SystemExit so execution stops
-    mock_sys_exit.side_effect = SystemExit(1)
+class TestVoiceAgent:
+    """Test VoiceAgent class."""
 
-    from main import main
+    def test_voice_agent_init(self, mock_dependencies):
+        """Test VoiceAgent initialization."""
+        # Import after mocking
+        if "main" in sys.modules:
+            del sys.modules["main"]
 
-    with pytest.raises(SystemExit):
-        main()
+        # Need to create a proper Agent base class mock
+        mock_agent_base = MagicMock()
+        mock_dependencies["livekit"].agents.Agent = mock_agent_base
 
-    mock_sys_exit.assert_called_once_with(1)
-    mock_logger.error.assert_called_once_with("Failed to load TTS: TTS load error")
+        from main import VoiceAgent
 
+        agent = VoiceAgent()
+        # Agent should be created with instructions
+        assert agent is not None
 
-@patch("main.tts_worker")
-@patch("main.llm_worker")
-@patch("main.stt_worker")
-@patch("main.audio_worker")
-@patch("main.TTSPlayer")
-@patch("main.torch.cuda.is_available", return_value=True)
-@patch("main.torch.zeros")
-@patch("main.sd.stop")
-@patch("main.time.sleep")
-@patch("main.logger")
-def test_main_sd_stop_exception(
-    mock_logger,
-    mock_sleep,
-    mock_sd_stop,
-    mock_torch_zeros,
-    mock_cuda,
-    mock_tts_class,
-    mock_audio_worker,
-    mock_stt_worker,
-    mock_llm_worker,
-    mock_tts_worker,
-):
-    """Test main() when sd.stop() raises an exception."""
-    mock_tts_instance = MagicMock()
-    mock_tts_class.return_value = mock_tts_instance
-    mock_sd_stop.side_effect = Exception("Audio error")
+    @pytest.mark.asyncio
+    async def test_voice_agent_on_enter(self, mock_dependencies):
+        """Test VoiceAgent.on_enter method."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
 
-    call_count = [0]
+        from main import VoiceAgent
 
-    def sleep_side_effect(*args):
-        call_count[0] += 1
-        if call_count[0] == 1:
-            raise KeyboardInterrupt()
+        agent = VoiceAgent()
+        agent.session = MagicMock()
+        agent.session.generate_reply = MagicMock()
 
-    mock_sleep.side_effect = sleep_side_effect
+        await agent.on_enter()
 
-    from main import main
+        agent.session.generate_reply.assert_called_once()
+        call_args = agent.session.generate_reply.call_args
+        assert "instructions" in call_args.kwargs
+        assert "Hello" in call_args.kwargs["instructions"]
 
-    with pytest.raises(SystemExit) as exc_info:
-        main()
+    @pytest.mark.asyncio
+    async def test_get_current_date_and_time(self, mock_dependencies):
+        """Test get_current_date_and_time tool."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
 
-    assert exc_info.value.code == 0
-    # Should still exit gracefully even if sd.stop() fails
+        from main import VoiceAgent
+
+        agent = VoiceAgent()
+        mock_context = MagicMock()
+
+        result = await agent.get_current_date_and_time(mock_context)
+
+        assert "current date and time" in result.lower()
+        # Should contain date format elements
+        assert any(
+            month in result
+            for month in [
+                "January",
+                "February",
+                "March",
+                "April",
+                "May",
+                "June",
+                "July",
+                "August",
+                "September",
+                "October",
+                "November",
+                "December",
+            ]
+        )
 
 
-@patch("main.tts_worker")
-@patch("main.llm_worker")
-@patch("main.stt_worker")
-@patch("main.audio_worker")
-@patch("main.TTSPlayer")
-@patch("main.torch.cuda.is_available", return_value=True)
-@patch("main.torch.zeros")
-@patch("main.sd.stop")
-@patch("main.time.sleep")
-@patch("main.logger")
-def test_main_thread_creation(
-    mock_logger,
-    mock_sleep,
-    mock_sd_stop,
-    mock_torch_zeros,
-    mock_cuda,
-    mock_tts_class,
-    mock_audio_worker,
-    mock_stt_worker,
-    mock_llm_worker,
-    mock_tts_worker,
-):
-    """Test that main() creates all required threads."""
-    mock_tts_instance = MagicMock()
-    mock_tts_class.return_value = mock_tts_instance
+class TestPrewarm:
+    """Test prewarm function."""
 
-    call_count = [0]
+    def test_prewarm_loads_models(self, mock_dependencies):
+        """Test that prewarm loads all required models."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
 
-    def sleep_side_effect(*args):
-        call_count[0] += 1
-        if call_count[0] == 1:
-            raise KeyboardInterrupt()
+        from main import prewarm
 
-    mock_sleep.side_effect = sleep_side_effect
+        mock_proc = MagicMock()
+        mock_proc.userdata = {}
 
-    with patch("main.threading.Thread") as mock_thread_class:
-        mock_thread = MagicMock()
-        mock_thread_class.return_value = mock_thread
+        prewarm(mock_proc)
+
+        # Should have loaded VAD, TTS, and STT
+        assert "vad" in mock_proc.userdata
+        assert "tts" in mock_proc.userdata
+        assert "stt" in mock_proc.userdata
+
+
+class TestEntrypoint:
+    """Test entrypoint function."""
+
+    @pytest.mark.asyncio
+    async def test_entrypoint_connects_and_starts_session(self, mock_dependencies):
+        """Test that entrypoint connects to room and starts session."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        from main import entrypoint
+
+        mock_ctx = MagicMock()
+        mock_ctx.room = MagicMock()
+        mock_ctx.room.name = "test-room"
+        mock_ctx.connect = AsyncMock()
+        mock_ctx.proc = MagicMock()
+        mock_ctx.proc.userdata = {
+            "vad": MagicMock(),
+            "tts": MagicMock(),
+            "stt": MagicMock(),
+        }
+
+        # Mock AgentSession
+        mock_session = MagicMock()
+        mock_session.start = AsyncMock()
+
+        with patch("main.AgentSession", return_value=mock_session):
+            await entrypoint(mock_ctx)
+
+        mock_ctx.connect.assert_called_once()
+        mock_session.start.assert_called_once()
+
+
+class TestMain:
+    """Test main function."""
+
+    def test_main_creates_worker_and_runs(self, mock_dependencies):
+        """Test that main creates worker options and runs."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
 
         from main import main
 
-        with pytest.raises(SystemExit):
-            main()
+        mock_worker_options = MagicMock()
+        mock_dependencies["livekit"].agents.WorkerOptions = MagicMock(
+            return_value=mock_worker_options
+        )
 
-        # Should create 4 threads
-        assert mock_thread_class.call_count == 4
-        assert mock_thread.start.call_count == 4
+        main()
 
+        # Should create WorkerOptions with correct arguments
+        mock_dependencies["livekit"].agents.WorkerOptions.assert_called_once()
+        call_kwargs = mock_dependencies["livekit"].agents.WorkerOptions.call_args.kwargs
+        assert "entrypoint_fnc" in call_kwargs
+        assert "prewarm_fnc" in call_kwargs
+        assert call_kwargs["agent_name"] == "voice-agent"
 
-@patch("main.main")
-def test_main_name_main(mock_main):
-    """Test that main() is called when script is run directly."""
-    # Test the if __name__ == "__main__" block (line 48)
-    # We execute main() directly which is what the if block does
-    from unittest.mock import patch
-
-    with patch("main.main") as mock_main_func:
-        # Execute what line 48 does: main()
-        # This gives us coverage of that line when we import and call it
-        import main as main_module
-
-        # The if block just calls main(), so we call it directly
-        main_module.main()
-        mock_main_func.assert_called_once()
+        # Should run the app
+        mock_dependencies["livekit"].agents.cli.run_app.assert_called_once_with(
+            mock_worker_options
+        )

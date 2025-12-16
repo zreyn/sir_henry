@@ -23,6 +23,7 @@ dependencies = [
 dev = [
     "black>=25.1.0",
     "pytest>=8.3.4",
+    "pytest-asyncio>=0.24.0",
     "pytest-cov>=6.0.0",
 ]
 
@@ -32,6 +33,9 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
 
 [tool.coverage.run]
 branch = false

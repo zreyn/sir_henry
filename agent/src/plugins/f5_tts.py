@@ -70,7 +70,9 @@ class _F5ChunkedStream(tts.ChunkedStream):
         input_text: str,
         conn_options: APIConnectOptions,
     ) -> None:
-        super().__init__(tts=tts_plugin, input_text=input_text, conn_options=conn_options)
+        super().__init__(
+            tts=tts_plugin, input_text=input_text, conn_options=conn_options
+        )
         self._f5_tts = tts_plugin
 
     async def _run(self, emitter: AudioEmitter) -> None:
@@ -86,13 +88,13 @@ class _F5ChunkedStream(tts.ChunkedStream):
         start_time = time.perf_counter()
         loop = asyncio.get_running_loop()
         audio_bytes = await loop.run_in_executor(
-            None,
-            self._synthesize_blocking,
-            self._input_text
+            None, self._synthesize_blocking, self._input_text
         )
         elapsed_ms = (time.perf_counter() - start_time) * 1000
 
-        logger.debug(f"TTS latency: {elapsed_ms:.0f}ms for {len(self._input_text)} chars")
+        logger.debug(
+            f"TTS latency: {elapsed_ms:.0f}ms for {len(self._input_text)} chars"
+        )
 
         if audio_bytes:
             emitter.push(audio_bytes)
@@ -182,7 +184,7 @@ class F5TTS(tts.TTS):
         super().__init__(
             capabilities=tts.TTSCapabilities(streaming=False),
             sample_rate=24000,
-            num_channels=1
+            num_channels=1,
         )
 
         self.speed = speed
@@ -263,10 +265,7 @@ class F5TTS(tts.TTS):
         logger.info("F5-TTS model loaded successfully")
 
     def synthesize(
-        self,
-        text: str,
-        *,
-        conn_options: APIConnectOptions | None = None
+        self, text: str, *, conn_options: APIConnectOptions | None = None
     ) -> tts.ChunkedStream:
         """
         Synthesize speech from text.
