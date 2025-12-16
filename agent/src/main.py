@@ -120,6 +120,7 @@ def main():
     worker = agents.WorkerOptions(
         entrypoint_fnc=entrypoint,
         prewarm_fnc=prewarm,
+        memory_warn_mb=1500,
     )
 
     # Run the agent

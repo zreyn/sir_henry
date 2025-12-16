@@ -1,7 +1,7 @@
 services:
   ollama:
     image: ollama/ollama:latest
-    container_name: local_ollama
+    container_name: local-ollama
     environment:
       - OLLAMA_KEEP_ALIVE=1
       - OLLAMA_HOST=0.0.0.0:11434
@@ -27,7 +27,7 @@ services:
 
   ollama-init:
     image: curlimages/curl:latest
-    container_name: local_ollama_init
+    container_name: local-ollama_init
     network_mode: host  # Use host network to reach ollama
     depends_on:
       ollama:
@@ -69,11 +69,12 @@ services:
       - ./livekit/config.yml:/etc/livekit.yaml:ro
     restart: unless-stopped
 
-  agent:
+  voice-agent:
+    image: voice-agent:latest
     build:
       context: .
       dockerfile: agent/Dockerfile
-    container_name: voice_agent
+    container_name: voice-agent
     network_mode: host  # Use host network to reach livekit and ollama
     depends_on:
       ollama:
@@ -103,11 +104,12 @@ services:
               capabilities: [gpu]
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/"]
+      # test: ["CMD", "curl", "-f", "http://localhost:8081/"]
+      test: ["CMD", "pgrep", "-f", "python"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 120s  # Allow time for model loading
+      start_period: 60s  # Allow time for model loading
 
 
 volumes:
