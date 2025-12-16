@@ -10,6 +10,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger("sir_henry")
 
+# Temporarily at INFO to debug startup issues
+logging.getLogger("livekit.agents").setLevel(logging.INFO)
+
 # LiveKit Configuration
 LIVEKIT_URL = os.environ.get("LIVEKIT_URL", "ws://localhost:7880")
 LIVEKIT_API_KEY = os.environ.get("LIVEKIT_API_KEY", "devkey")

@@ -128,9 +128,9 @@ class F5TTS(tts.TTS):
         self,
         text: str,
         *,
-        conn_options: utils.http_context.ConnOptions | None = None,
+        conn_options: tts.TTSConnOptions | None = None,
     ) -> "ChunkedStream":
-        return ChunkedStream(tts=self, input_text=text)
+        return ChunkedStream(tts=self, input_text=text, conn_options=conn_options)
 
     def _generate_audio(self, text: str) -> tuple[np.ndarray, int] | None:
         """Generate audio from text using F5-TTS."""
@@ -176,8 +176,14 @@ class F5TTS(tts.TTS):
 class ChunkedStream(tts.ChunkedStream):
     """Chunked stream implementation for F5-TTS."""
 
-    def __init__(self, *, tts: F5TTS, input_text: str):
-        super().__init__(tts=tts, input_text=input_text)
+    def __init__(
+        self,
+        *,
+        tts: F5TTS,
+        input_text: str,
+        conn_options: tts.TTSConnOptions | None = None,
+    ):
+        super().__init__(tts=tts, input_text=input_text, conn_options=conn_options)
         self._tts = tts
 
     async def _run(self) -> None:

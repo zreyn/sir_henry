@@ -14,7 +14,6 @@ from livekit.agents import AgentSession, Agent, JobContext, JobProcess, RunConte
 from livekit.agents.llm import function_tool
 from livekit.plugins import openai as lk_openai
 from livekit.plugins import silero
-from plugins import F5TTS, FasterWhisperSTT
 
 from config import (
     logger,
@@ -50,7 +49,7 @@ class VoiceAgent(Agent):
     @function_tool
     async def get_current_date_and_time(self, context: RunContext) -> str:
         """Get the current date and time."""
-        current_datetime = datetime.now().strftime("%B %d, %Y at %I:%M %p")
+        current_datetime = datetime.datetime.now().strftime("%B %d, %Y at %I:%M %p")
         return f"The current date and time is {current_datetime}"
 
 
@@ -59,6 +58,9 @@ def prewarm(proc: JobProcess):
     Prewarm function to load models before the agent starts.
     This reduces latency when the first user connects.
     """
+    # Import heavy plugins here to avoid multiprocessing spawn issues
+    from plugins import F5TTS, FasterWhisperSTT
+
     logger.info("Prewarming models...")
 
     # Load Silero VAD
@@ -120,7 +122,6 @@ def main():
     worker = agents.WorkerOptions(
         entrypoint_fnc=entrypoint,
         prewarm_fnc=prewarm,
-        memory_warn_mb=1500,
     )
 
     # Run the agent

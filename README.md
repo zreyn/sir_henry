@@ -59,13 +59,22 @@ For a client, start with the livekit CLI: https://docs.livekit.io/home/cli/
 
 Auto-generate token and join room:
 ```
-livekit-cli room join \
+lk room join \
   --url ws://YOUR_SERVER_IP:7880 \
   --api-key devkey \
   --api-secret secret \
   --room my-room \
   --identity user1
   ```
+
+Generate a token:
+```
+lk token create \
+  --api-key devkey --api-secret secret \
+  --join --room testing \
+  --identity human-user \
+  --valid-for 24h
+```
 
 For development, you can run without Docker:
 ```
