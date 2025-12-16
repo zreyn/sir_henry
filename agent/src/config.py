@@ -10,7 +10,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger("sir_henry")
 
-# logging.getLogger("livekit.agents").setLevel(logging.INFO)
+logging.getLogger("livekit.agents").setLevel(logging.ERROR)
 
 # LiveKit Configuration
 LIVEKIT_URL = os.environ.get("LIVEKIT_URL", "ws://localhost:7880")
