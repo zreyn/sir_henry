@@ -36,7 +36,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 import torch
-from huggingface_hub import snapshot_download
+from huggingface_hub import hf_hub_download
 from f5_tts.model import DiT
 from f5_tts.infer.utils_infer import (
     load_model,
@@ -214,25 +214,18 @@ class F5TTS(tts.TTS):
         if torch.cuda.is_available() and self._device == "cuda":
             torch.zeros(1).cuda()
 
-        # Download/load F5-TTS model
-        model_dir = snapshot_download("SWivid/F5-TTS", cache_dir="./models/")
-        base_dir = os.path.join(model_dir, "F5TTS_v1_Base")
-
-        if not os.path.exists(base_dir):
-            raise FileNotFoundError(f"Model directory not found: {base_dir}")
-
-        safetensors_path = os.path.join(base_dir, "model_1250000.safetensors")
-        pt_path = os.path.join(base_dir, "model_1250000.pt")
-        vocab_path = os.path.join(base_dir, "vocab.txt")
-
-        if os.path.exists(safetensors_path):
-            ckpt_path = safetensors_path
-        elif os.path.exists(pt_path):
-            ckpt_path = pt_path
-        else:
-            raise FileNotFoundError(f"No checkpoint found in {base_dir}")
-
-        vocab_file = vocab_path if os.path.exists(vocab_path) else None
+        # Download only the specific model files needed (saves ~5GB vs full repo)
+        logger.info("Downloading F5-TTS model files...")
+        ckpt_path = hf_hub_download(
+            repo_id="SWivid/F5-TTS",
+            filename="F5TTS_v1_Base/model_1250000.safetensors",
+            cache_dir="./models/",
+        )
+        vocab_file = hf_hub_download(
+            repo_id="SWivid/F5-TTS",
+            filename="F5TTS_v1_Base/vocab.txt",
+            cache_dir="./models/",
+        )
 
         self._vocoder = load_vocoder(
             is_local=True, local_path="./models/models--charactr--vocos-mel-24khz"

@@ -16,7 +16,7 @@ def mock_f5_dependencies():
     mock_torch.cuda.is_available.return_value = False
     mock_torch.zeros.return_value = MagicMock()
 
-    mock_snapshot_download = MagicMock(return_value="/mock/model/dir")
+    mock_hf_hub_download = MagicMock(return_value="/mock/model/path")
 
     mock_dit = MagicMock()
 
@@ -63,7 +63,7 @@ def mock_f5_dependencies():
         {
             "torch": mock_torch,
             "numpy": np,
-            "huggingface_hub": MagicMock(snapshot_download=mock_snapshot_download),
+            "huggingface_hub": MagicMock(hf_hub_download=mock_hf_hub_download),
             "f5_tts": MagicMock(),
             "f5_tts.model": MagicMock(DiT=mock_dit),
             "f5_tts.infer": MagicMock(),
@@ -81,7 +81,7 @@ def mock_f5_dependencies():
         yield {
             "torch": mock_torch,
             "utils_infer": mock_utils_infer,
-            "snapshot_download": mock_snapshot_download,
+            "hf_hub_download": mock_hf_hub_download,
             "tts": mock_tts,
             "agents": mock_agents,
         }
@@ -145,20 +145,10 @@ class TestF5TTS:
         assert tts.speed == 1.5
 
     @patch("os.path.exists")
-    def test_ensure_loaded_safetensors(self, mock_exists, mock_f5_dependencies):
-        """Test _ensure_loaded with safetensors checkpoint."""
-
-        # Setup exists to return True for safetensors path
-        def exists_side_effect(path):
-            if "safetensors" in path:
-                return True
-            if "F5TTS_v1_Base" in path:
-                return True
-            if "vocab.txt" in path:
-                return True
-            return path == "/path/to/ref.wav"
-
-        mock_exists.side_effect = exists_side_effect
+    def test_ensure_loaded_downloads_model(self, mock_exists, mock_f5_dependencies):
+        """Test _ensure_loaded downloads model files and loads them."""
+        # Reference audio exists
+        mock_exists.return_value = True
 
         from plugins.f5_tts import F5TTS
 
@@ -172,76 +162,6 @@ class TestF5TTS:
         assert tts._loaded is True
         mock_f5_dependencies["utils_infer"].load_vocoder.assert_called_once()
         mock_f5_dependencies["utils_infer"].load_model.assert_called_once()
-
-    @patch("os.path.exists")
-    def test_ensure_loaded_pt_checkpoint(self, mock_exists, mock_f5_dependencies):
-        """Test _ensure_loaded with .pt checkpoint."""
-
-        def exists_side_effect(path):
-            if "safetensors" in path:
-                return False
-            if ".pt" in path:
-                return True
-            if "F5TTS_v1_Base" in path:
-                return True
-            if "vocab.txt" in path:
-                return False
-            return path == "/path/to/ref.wav"
-
-        mock_exists.side_effect = exists_side_effect
-
-        from plugins.f5_tts import F5TTS
-
-        tts = F5TTS(
-            ref_audio_path="/path/to/ref.wav",
-            ref_text="Reference text",
-        )
-
-        tts._ensure_loaded()
-
-        assert tts._loaded is True
-
-    @patch("os.path.exists")
-    def test_ensure_loaded_no_checkpoint_raises(
-        self, mock_exists, mock_f5_dependencies
-    ):
-        """Test _ensure_loaded raises when no checkpoint found."""
-
-        def exists_side_effect(path):
-            if "safetensors" in path:
-                return False
-            if ".pt" in path:
-                return False
-            if "F5TTS_v1_Base" in path:
-                return True
-            return False
-
-        mock_exists.side_effect = exists_side_effect
-
-        from plugins.f5_tts import F5TTS
-
-        tts = F5TTS(
-            ref_audio_path="/path/to/ref.wav",
-            ref_text="Reference text",
-        )
-
-        with pytest.raises(FileNotFoundError, match="No checkpoint found"):
-            tts._ensure_loaded()
-
-    @patch("os.path.exists")
-    def test_ensure_loaded_no_base_dir_raises(self, mock_exists, mock_f5_dependencies):
-        """Test _ensure_loaded raises when base dir not found."""
-        mock_exists.return_value = False
-
-        from plugins.f5_tts import F5TTS
-
-        tts = F5TTS(
-            ref_audio_path="/path/to/ref.wav",
-            ref_text="Reference text",
-        )
-
-        with pytest.raises(FileNotFoundError, match="Model directory not found"):
-            tts._ensure_loaded()
 
     @patch("os.path.exists")
     def test_ensure_loaded_no_ref_audio_raises(self, mock_exists, mock_f5_dependencies):
