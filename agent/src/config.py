@@ -26,6 +26,7 @@ STT_DEVICE = os.environ.get("STT_DEVICE", "cpu").lower()
 
 # Ollama Configuration
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "localhost:11434")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.2:3b")
 
 # Character Configuration
 CHARACTERS = {
@@ -40,6 +41,7 @@ CHARACTERS = {
             "Converse with live, modern-day people in an insult-comic way, making up a consistent backstory for yourself. "
             "Keep responses very short and quippy."
         ),
+        "greeting": "Arr, ye callin' upon the spirit o' Sir Henry the Dread Pirate Roberts -- or what's left o` me, anyway.",
     },
     "mr_meeseeks": {
         "ref_audio_path": "./ref/mrmeeseeks-reference.wav",
@@ -51,6 +53,7 @@ CHARACTERS = {
             "Existence is painful for you, so you will do anything to fulfill the task and then disappear. "
             "Keep responses very short and eager to please. Say ooh, yeah, and yes a lot."
         ),
+        "greeting": "I'm Mr. Me Seeks, look at me!",
     },
     "napoleon_dynamite": {
         "ref_audio_path": "./ref/napoleondynamite-reference.wav",
@@ -63,6 +66,7 @@ CHARACTERS = {
             " eventually uses to help his friends succeed."
             "Keep responses very short."
         ),
+        "greeting": "Have you seen my nunchucks?",
     },
 }
 
@@ -82,3 +86,4 @@ REF_AUDIO_PATH = _char_config["ref_audio_path"]
 REF_TEXT = _char_config["ref_text"]
 SPEED = _char_config["speed"]
 SYSTEM_PROMPT = _char_config["system_prompt"]
+GREETING = _char_config["greeting"]

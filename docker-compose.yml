@@ -1,7 +1,7 @@
 services:
   ollama:
     image: ollama/ollama:latest
-    container_name: sir_henry_ollama
+    container_name: local_ollama
     environment:
       - OLLAMA_KEEP_ALIVE=1
       - OLLAMA_HOST=0.0.0.0:11434
@@ -27,7 +27,7 @@ services:
 
   ollama-init:
     image: curlimages/curl:latest
-    container_name: sir_henry_ollama_init
+    container_name: local_ollama_init
     network_mode: host  # Use host network to reach ollama
     depends_on:
       ollama:
@@ -73,7 +73,7 @@ services:
     build:
       context: .
       dockerfile: agent/Dockerfile
-    container_name: sir_henry_agent
+    container_name: voice_agent
     network_mode: host  # Use host network to reach livekit and ollama
     depends_on:
       ollama:
@@ -85,6 +85,7 @@ services:
       - TTS_DEVICE=${TTS_DEVICE:-}
       - STT_DEVICE=${STT_DEVICE:-cpu}
       - OLLAMA_HOST=localhost:11434
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2:3b}
       - LIVEKIT_URL=ws://localhost:7880
       - LIVEKIT_API_KEY=devkey
       - LIVEKIT_API_SECRET=secret

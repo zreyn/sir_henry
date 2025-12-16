@@ -5,30 +5,37 @@ A voice AI agent using LiveKit Agents framework with custom F5-TTS and Faster-Wh
 """
 
 import logging
+import datetime
+
 from dotenv import load_dotenv
 
 from livekit import agents
-from livekit.agents import AgentSession, Agent, JobContext, JobProcess
+from livekit.agents import AgentSession, Agent, JobContext, JobProcess, RunContext
+from livekit.agents.llm import function_tool
+from livekit.plugins import openai as lk_openai
 from livekit.plugins import silero
+from plugins import F5TTS, FasterWhisperSTT
 
 from config import (
     logger,
     SYSTEM_PROMPT,
+    GREETING,
     REF_AUDIO_PATH,
     REF_TEXT,
     SPEED,
     DEVICE,
     STT_DEVICE,
     OLLAMA_HOST,
+    OLLAMA_MODEL,
 )
-from plugins import F5TTS, FasterWhisperSTT, OllamaLLM
+
 
 # Load environment variables
 load_dotenv()
 
 
-class SirHenryAgent(Agent):
-    """The Sir Henry voice AI agent."""
+class VoiceAgent(Agent):
+    """The voice AI agent."""
 
     def __init__(self):
         super().__init__(instructions=SYSTEM_PROMPT)
@@ -37,8 +44,14 @@ class SirHenryAgent(Agent):
         """Called when the agent enters a session."""
         # Generate an initial greeting
         self.session.generate_reply(
-            instructions="Introduce yourself briefly with a pirate greeting."
+            instructions=f"Introduce yourself briefly with this greeting: '{GREETING}'."
         )
+
+    @function_tool
+    async def get_current_date_and_time(self, context: RunContext) -> str:
+        """Get the current date and time."""
+        current_datetime = datetime.now().strftime("%B %d, %Y at %I:%M %p")
+        return f"The current date and time is {current_datetime}"
 
 
 def prewarm(proc: JobProcess):
@@ -84,15 +97,15 @@ async def entrypoint(ctx: JobContext):
         stt=ctx.proc.userdata["stt"],
         tts=ctx.proc.userdata["tts"],
         vad=ctx.proc.userdata["vad"],
-        llm=OllamaLLM(
-            model="llama3.2:3b",
-            host=OLLAMA_HOST,
+        llm=lk_openai.LLM.with_ollama(
+            model=OLLAMA_MODEL,
+            base_url=f"http://{OLLAMA_HOST}/v1",
         ),
     )
 
     # Start the session with our agent
     await session.start(
-        agent=SirHenryAgent(),
+        agent=VoiceAgent(),
         room=ctx.room,
     )
 
@@ -101,7 +114,7 @@ async def entrypoint(ctx: JobContext):
 
 def main():
     """Run the LiveKit agent."""
-    logger.info("Starting Sir Henry LiveKit Agent...")
+    logger.info("Starting LiveKit Voice Agent...")
 
     # Create the agent server
     worker = agents.WorkerOptions(

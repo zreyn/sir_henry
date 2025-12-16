@@ -34,6 +34,7 @@ dependencies = [
     { name = "f5-tts" },
     { name = "faster-whisper" },
     { name = "livekit-agents" },
+    { name = "livekit-plugins-openai" },
     { name = "livekit-plugins-silero" },
     { name = "numpy" },
     { name = "python-dotenv" },
@@ -54,6 +55,7 @@ requires-dist = [
     { name = "f5-tts", specifier = ">=1.1.10" },
     { name = "faster-whisper", specifier = ">=1.2.1" },
     { name = "livekit-agents", specifier = ">=1.0.0" },
+    { name = "livekit-plugins-openai", specifier = ">=1.0.0" },
     { name = "livekit-plugins-silero", specifier = ">=1.0.0" },
     { name = "numpy", specifier = ">=2.3.4" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3.4" },
@@ -1820,6 +1822,14 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/95/0b/5c099f1ce62a6fc0762f3aabfaf6c523726f3ee7c333663bbf662c91ae0e/livekit_agents-1.3.6-py3-none-any.whl", hash = "sha256:4e3a6a3d73243056fca2fd9fa82284a5125cfb8b0117d0560e263fc81e16ba62", size = 1344961, upload-time = "2025-12-03T19:09:22.376Z" },
 ]
 
+[package.optional-dependencies]
+codecs = [
+    { name = "numpy" },
+]
+images = [
+    { name = "pillow" },
+]
+
 [[package]]
 name = "livekit-api"
 version = "1.1.0"
@@ -1851,6 +1861,19 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/71/e2/3c1671f7ed50db09813f6f06581b3acc93935f88352f96ce141b93e1f098/livekit_blingfire-1.0.0-cp313-cp313-manylinux_2_24_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:3c8d3a92a34925063ac05e70f6d4eebfeb9f9e29816868dece7159688b68cefe", size = 158534, upload-time = "2025-06-30T14:56:23.616Z" },
     { url = "https://files.pythonhosted.org/packages/14/e6/9f21edfdc7284d89e3f6a61db662e5b4eda45a7657628dd55308164386c0/livekit_blingfire-1.0.0-cp313-cp313-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:212ffef06b2e832758afcd1d19c709068207ad71f2fb5b426b6bb8e2773e9673", size = 167224, upload-time = "2025-06-30T14:56:24.811Z" },
     { url = "https://files.pythonhosted.org/packages/1f/d0/307cc89438888067a17a0c33329d59867516a616aab7618dcb43987165ea/livekit_blingfire-1.0.0-cp313-cp313-win_amd64.whl", hash = "sha256:f3f4df6a51171a88c6863cea01c607661d6d6bc0398976a37ba0e4b3e3283433", size = 125486, upload-time = "2025-06-30T14:56:26.1Z" },
+]
+
+[[package]]
+name = "livekit-plugins-openai"
+version = "1.3.6"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "livekit-agents", extra = ["codecs", "images"] },
+    { name = "openai", extra = ["realtime"] },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/15/c1/11aa8e1e3b04eec724dd8d4dc8c959b3f0d30fc4e8a8d269cc6a2fec55ba/livekit_plugins_openai-1.3.6.tar.gz", hash = "sha256:3ecb893a4166296ae66ed4df19c41d15de2f61c4587a8925e352755b4f8422dc", size = 45816, upload-time = "2025-12-03T19:10:22.154Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/81/e1/75d64c123e8a0301a9b0bb5f6aaaba462e2d885b853f534081ff803717f0/livekit_plugins_openai-1.3.6-py3-none-any.whl", hash = "sha256:7bfbbe789408d12993a81aeeb50e61d9ddd921bad98dff00c2c16cab68fb7c70", size = 52611, upload-time = "2025-12-03T19:10:21.169Z" },
 ]
 
 [[package]]
@@ -2521,6 +2544,11 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/71/e3/cec27fa28ef36c4ccea71e9e8c20be9b8539618732989a82027575aab9d4/openai-2.7.2.tar.gz", hash = "sha256:082ef61163074d8efad0035dd08934cf5e3afd37254f70fc9165dd6a8c67dcbd", size = 595732, upload-time = "2025-11-10T16:42:31.108Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/25/66/22cfe4b695b5fd042931b32c67d685e867bfd169ebf46036b95b57314c33/openai-2.7.2-py3-none-any.whl", hash = "sha256:116f522f4427f8a0a59b51655a356da85ce092f3ed6abeca65f03c8be6e073d9", size = 1008375, upload-time = "2025-11-10T16:42:28.574Z" },
+]
+
+[package.optional-dependencies]
+realtime = [
+    { name = "websockets" },
 ]
 
 [[package]]
