@@ -10,7 +10,9 @@ import pytest
 class TestClientConfiguration:
     """Test client configuration loading."""
 
-    def test_loads_environment_variables(self, mock_env_vars, mock_livekit_rtc, mock_sounddevice):
+    def test_loads_environment_variables(
+        self, mock_env_vars, mock_livekit_rtc, mock_sounddevice
+    ):
         """Test that URL and TOKEN are loaded from environment."""
         if "main" in sys.modules:
             del sys.modules["main"]
@@ -30,7 +32,9 @@ class TestClientConfiguration:
             assert URL == "ws://localhost:7880"
             assert TOKEN == "test-token"
 
-    def test_handles_missing_environment_variables(self, mock_livekit_rtc, mock_sounddevice):
+    def test_handles_missing_environment_variables(
+        self, mock_livekit_rtc, mock_sounddevice
+    ):
         """Test behavior when environment variables are not set."""
         if "main" in sys.modules:
             del sys.modules["main"]
@@ -59,7 +63,9 @@ class TestMain:
     """Test main function."""
 
     @pytest.mark.asyncio
-    async def test_connects_to_room(self, mock_env_vars, mock_livekit_rtc, mock_sounddevice):
+    async def test_connects_to_room(
+        self, mock_env_vars, mock_livekit_rtc, mock_sounddevice
+    ):
         """Test that main connects to the LiveKit room."""
         if "main" in sys.modules:
             del sys.modules["main"]
@@ -89,13 +95,17 @@ class TestMain:
             )
 
     @pytest.mark.asyncio
-    async def test_publishes_microphone_track(self, mock_env_vars, mock_livekit_rtc, mock_sounddevice):
+    async def test_publishes_microphone_track(
+        self, mock_env_vars, mock_livekit_rtc, mock_sounddevice
+    ):
         """Test that main publishes the microphone track with correct options."""
         if "main" in sys.modules:
             del sys.modules["main"]
 
         mock_room_instance = mock_livekit_rtc.Room.return_value
-        mock_audio_track = mock_livekit_rtc.LocalAudioTrack.create_audio_track.return_value
+        mock_audio_track = (
+            mock_livekit_rtc.LocalAudioTrack.create_audio_track.return_value
+        )
 
         with patch.dict(
             "sys.modules",
@@ -201,7 +211,9 @@ class TestTrackSubscribedHandler:
     """Test the track_subscribed event handler."""
 
     @pytest.mark.asyncio
-    async def test_handles_audio_track(self, mock_env_vars, mock_livekit_rtc, mock_sounddevice):
+    async def test_handles_audio_track(
+        self, mock_env_vars, mock_livekit_rtc, mock_sounddevice
+    ):
         """Test that audio tracks are handled correctly."""
         if "main" in sys.modules:
             del sys.modules["main"]
@@ -214,6 +226,7 @@ class TestTrackSubscribedHandler:
                 if event == "track_subscribed":
                     captured_handler = f
                 return f
+
             return decorator
 
         mock_room_instance = mock_livekit_rtc.Room.return_value
@@ -256,7 +269,9 @@ class TestTrackSubscribedHandler:
             mock_livekit_rtc.AudioStream.assert_called_once_with(mock_track)
 
     @pytest.mark.asyncio
-    async def test_ignores_non_audio_tracks(self, mock_env_vars, mock_livekit_rtc, mock_sounddevice):
+    async def test_ignores_non_audio_tracks(
+        self, mock_env_vars, mock_livekit_rtc, mock_sounddevice
+    ):
         """Test that non-audio tracks are ignored."""
         if "main" in sys.modules:
             del sys.modules["main"]
@@ -269,6 +284,7 @@ class TestTrackSubscribedHandler:
                 if event == "track_subscribed":
                     captured_handler = f
                 return f
+
             return decorator
 
         mock_room_instance = mock_livekit_rtc.Room.return_value
@@ -327,6 +343,7 @@ class TestPlayAudioStream:
                     mock_frame_event.frame = MagicMock()
                     mock_frame_event.frame.data = b"\x00\x01" * 960
                     yield mock_frame_event
+
                 return gen()
 
         mock_rtc.AudioStream = MockAudioStream
@@ -395,6 +412,167 @@ class TestPlayAudioStream:
             mock_stream.close.assert_called_once()
 
 
+class TestAGC:
+    """Test the AGC (Automatic Gain Control) class."""
+
+    def test_agc_initialization(self, mock_livekit_rtc, mock_sounddevice):
+        """Test AGC initializes with correct defaults."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit.rtc": mock_livekit_rtc,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": MagicMock(),
+            },
+        ):
+            from main import AGC
+
+            agc = AGC()
+            assert agc.target_rms == 0.2
+            assert agc.min_gain == 1.0
+            assert agc.max_gain == 100.0
+            assert agc.noise_gate == 0.005
+
+    def test_agc_amplifies_quiet_signal(self, mock_livekit_rtc, mock_sounddevice):
+        """Test AGC amplifies quiet signals."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        import numpy as np
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit.rtc": mock_livekit_rtc,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+            },
+        ):
+            from main import AGC
+
+            agc = AGC(target_rms=0.2, max_gain=100.0)
+
+            # Quiet input signal (RMS ~0.01)
+            quiet_signal = np.full((960, 1), 0.01, dtype=np.float32)
+
+            # Process the signal
+            output = agc.process(quiet_signal)
+
+            # Output should be amplified (louder than input)
+            input_rms = np.sqrt(np.mean(quiet_signal**2))
+            output_rms = np.sqrt(np.mean(output**2))
+            assert output_rms > input_rms
+
+    def test_agc_limits_loud_signal(self, mock_livekit_rtc, mock_sounddevice):
+        """Test AGC doesn't over-amplify loud signals."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        import numpy as np
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit.rtc": mock_livekit_rtc,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+            },
+        ):
+            from main import AGC
+
+            agc = AGC(target_rms=0.2, max_gain=10.0)
+
+            # Loud input signal (RMS ~0.5)
+            loud_signal = np.full((960, 1), 0.5, dtype=np.float32)
+
+            # Process multiple times to let gain settle
+            for _ in range(10):
+                output = agc.process(loud_signal)
+
+            # Output should be soft-clipped (no values > 1)
+            assert np.all(np.abs(output) <= 1.0)
+
+    def test_agc_noise_gate(self, mock_livekit_rtc, mock_sounddevice):
+        """Test AGC doesn't amplify signals below noise gate."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        import numpy as np
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit.rtc": mock_livekit_rtc,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+            },
+        ):
+            from main import AGC
+
+            agc = AGC(target_rms=0.2, noise_gate=0.01)
+            initial_gain = agc.current_gain
+
+            # Very quiet signal (below noise gate)
+            noise_signal = np.full((960, 1), 0.001, dtype=np.float32)
+
+            # Process the signal
+            agc.process(noise_signal)
+
+            # Gain should not have changed
+            assert agc.current_gain == initial_gain
+
+    def test_agc_release_increases_gain(self, mock_livekit_rtc, mock_sounddevice):
+        """Test AGC release phase increases gain when signal gets quieter."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        import numpy as np
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit.rtc": mock_livekit_rtc,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+            },
+        ):
+            from main import AGC
+
+            # Create AGC with fast attack to quickly lower gain, slow release
+            agc = AGC(
+                target_rms=0.2,
+                min_gain=1.0,
+                max_gain=100.0,
+                attack_time=0.5,
+                release_time=0.5,
+            )
+
+            # First, process a very loud signal to quickly reduce gain to minimum
+            loud_signal = np.full((960, 1), 0.9, dtype=np.float32)
+            for _ in range(100):  # Many iterations to converge toward min_gain
+                agc.process(loud_signal)
+
+            low_gain = agc.current_gain
+
+            # Now process a very quiet signal that requires high gain
+            # RMS = 0.01, target = 0.2, desired_gain = 20
+            # Since desired_gain (20) > current_gain (~1), we're in release phase
+            quiet_signal = np.full((960, 1), 0.01, dtype=np.float32)
+            agc.process(quiet_signal)
+
+            # Gain should have increased (release phase)
+            assert agc.current_gain > low_gain
+
+
 class TestCaptureMicrophone:
     """Test the _capture_microphone function."""
 
@@ -420,7 +598,7 @@ class TestCaptureMicrophone:
             from main import _capture_microphone
 
             # Run capture briefly then cancel
-            task = asyncio.create_task(_capture_microphone(mock_audio_source, gain=3.0))
+            task = asyncio.create_task(_capture_microphone(mock_audio_source))
             await asyncio.sleep(0.01)
             task.cancel()
             try:
@@ -438,7 +616,9 @@ class TestCaptureMicrophone:
             assert "callback" in call_kwargs
 
     @pytest.mark.asyncio
-    async def test_audio_callback_processes_audio(self, mock_sounddevice, mock_livekit_rtc):
+    async def test_audio_callback_processes_audio(
+        self, mock_sounddevice, mock_livekit_rtc
+    ):
         """Test that the audio callback processes and sends audio frames."""
         if "main" in sys.modules:
             del sys.modules["main"]
@@ -469,7 +649,7 @@ class TestCaptureMicrophone:
             from main import _capture_microphone
 
             # Run capture briefly to set up callback
-            task = asyncio.create_task(_capture_microphone(mock_audio_source, gain=3.0))
+            task = asyncio.create_task(_capture_microphone(mock_audio_source))
             await asyncio.sleep(0.01)
 
             # Verify callback was captured
@@ -495,7 +675,9 @@ class TestCaptureMicrophone:
                 pass
 
     @pytest.mark.asyncio
-    async def test_audio_callback_handles_status(self, mock_sounddevice, mock_livekit_rtc):
+    async def test_audio_callback_handles_status(
+        self, mock_sounddevice, mock_livekit_rtc
+    ):
         """Test that the audio callback logs status messages."""
         if "main" in sys.modules:
             del sys.modules["main"]
@@ -525,14 +707,14 @@ class TestCaptureMicrophone:
         ):
             from main import _capture_microphone
 
-            task = asyncio.create_task(_capture_microphone(mock_audio_source, gain=3.0))
+            task = asyncio.create_task(_capture_microphone(mock_audio_source))
             await asyncio.sleep(0.01)
 
             assert captured_callback is not None
 
             # Simulate audio input with status
             mock_indata = np.zeros((960, 1), dtype=np.float32)
-            
+
             # Call callback with a status (should log warning but not fail)
             captured_callback(mock_indata, 960, None, "input overflow")
 
@@ -545,7 +727,9 @@ class TestCaptureMicrophone:
                 pass
 
     @pytest.mark.asyncio
-    async def test_audio_callback_handles_error(self, mock_sounddevice, mock_livekit_rtc):
+    async def test_audio_callback_handles_error(
+        self, mock_sounddevice, mock_livekit_rtc
+    ):
         """Test that the audio callback handles errors gracefully."""
         if "main" in sys.modules:
             del sys.modules["main"]
@@ -578,14 +762,14 @@ class TestCaptureMicrophone:
             from main import _capture_microphone
             import numpy as np
 
-            task = asyncio.create_task(_capture_microphone(mock_audio_source, gain=3.0))
+            task = asyncio.create_task(_capture_microphone(mock_audio_source))
             await asyncio.sleep(0.01)
 
             assert captured_callback is not None
 
             # Simulate audio input - callback should handle the error gracefully
             mock_indata = np.zeros((960, 1), dtype=np.float32)
-            
+
             # This should not raise, error is caught internally
             captured_callback(mock_indata, 960, None, None)
 
