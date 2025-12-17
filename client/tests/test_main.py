@@ -376,6 +376,7 @@ class TestPlayAudioStream:
             mock_stream.stop.assert_called_once()
             mock_stream.close.assert_called_once()
 
+<<<<<<< Updated upstream
     @pytest.mark.asyncio
     async def test_handles_stream_error(self, mock_sounddevice):
         """Test that errors during streaming are handled gracefully."""
@@ -778,3 +779,5 @@ class TestCaptureMicrophone:
                 await task
             except asyncio.CancelledError:
                 pass
+=======
+>>>>>>> Stashed changes

@@ -5,6 +5,7 @@ A voice AI agent using LiveKit Agents framework with custom F5-TTS and Faster-Wh
 """
 
 import logging
+import time
 
 from dotenv import load_dotenv
 
@@ -67,12 +68,15 @@ def prewarm(proc: JobProcess):
         speed=SPEED,
         device=DEVICE,
     )
-    logger.info("F5-TTS initialized.")
+    # Force-load TTS weights now so first reply is fast
+    proc.userdata["tts"]._ensure_loaded()
+    logger.info("F5-TTS initialized and warmed.")
 
     # Initialize Faster-Whisper STT
     proc.userdata["stt"] = FasterWhisperSTT(
         model_size="small",
         device=STT_DEVICE,
+        language="en",  # force English to avoid misdetection
     )
     logger.info("Faster-Whisper STT initialized.")
 
@@ -114,6 +118,25 @@ async def entrypoint(ctx: JobContext):
             temperature=OLLAMA_TEMPERATURE,
         ),
     )
+
+    # Round-trip latency tracking (STT done -> LLM + TTS start)
+    _transcription_time: float | None = None
+
+    @session.on("user_input_transcribed")
+    def on_user_input_transcribed(ev) -> None:
+        nonlocal _transcription_time
+        _transcription_time = time.perf_counter()
+        transcript = getattr(ev, "transcript", "")
+        if transcript:
+            logger.debug(f"User said: {transcript[:80]}...")
+
+    @session.on("agent_state_changed")
+    def on_agent_state_changed(ev) -> None:
+        nonlocal _transcription_time
+        if ev.new_state == "speaking" and _transcription_time is not None:
+            latency_ms = (time.perf_counter() - _transcription_time) * 1000
+            logger.info(f"ROUND-TRIP LATENCY: {latency_ms:.0f}ms (LLM + TTS)")
+            _transcription_time = None
 
     # Start the session with our agent
     await session.start(

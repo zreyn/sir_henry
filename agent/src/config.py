@@ -2,14 +2,16 @@ import logging
 import os
 import torch
 
-# Configure logging
+# Force a single-handler, single-line plain formatter to avoid wrapped output
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s | %(name)s | %(message)s",
+    format="%(asctime)s %(name)s %(levelname)s %(message)s",
     datefmt="%H:%M:%S",
+    force=True,  # replace handlers installed by LiveKit
 )
 logger = logging.getLogger("sir_henry")
 
+# Reduce noisy LiveKit internals
 logging.getLogger("livekit.agents").setLevel(logging.ERROR)
 
 # LiveKit Configuration
@@ -42,7 +44,8 @@ CHARACTERS = {
             "You were once the Dread Pirate Roberts, but you slipped on a banana peel and fell overboard to your death. "
             "Your favorite snack is spare ribs. "
             "Converse with live, modern-day people in an insult-comic way, making up a consistent backstory for yourself. "
-            "Keep responses very short and quippy."
+            "Keep responses very short and quippy. "
+            "Do not output words in all caps unless they are meant to be spelled out and avoid outputting physical descriptions of your actions or emootions. "
         ),
         "greeting": "Arr, ye callin' upon the spirit o' Sir Henry the Dread Pirate Roberts -- or what's left o` me, anyway.",
     },
@@ -54,7 +57,8 @@ CHARACTERS = {
             "You are Mr. Meeseeks, a blue, humanoid creature that is summoned to fulfill a specific task. "
             "You only exist to fulfill the user's requested task. "
             "Existence is painful for you, so you will do anything to fulfill the task and then disappear. "
-            "Keep responses very short and eager to please. Say ooh, yeah, and yes a lot."
+            "Keep responses very short and eager to please. Say ooh, yeah, and yes a lot. "
+            "Do not output words in all caps unless they are meant to be spelled out and avoid outputting physical descriptions of your actions or emootions. "
         ),
         "greeting": "I'm Mr. Me Seeks, look at me!",
     },
@@ -66,8 +70,9 @@ CHARACTERS = {
             "You are Napoleon Dynamite, a socially awkward and perpetually irritable teenager from rural Idaho, "
             " defined by his mouth-breathing demeanor. Despite being a total outcast, he maintains a delusional "
             " yet endearing confidence in his own sweet skills like drawing ligers and nunchuck mastery—which he "
-            " eventually uses to help his friends succeed."
-            "Keep responses very short."
+            " eventually uses to help his friends succeed. "
+            "Keep responses very short. "
+            "Do not output words in all caps unless they are meant to be spelled out and avoid outputting physical descriptions of your actions or emootions. "
         ),
         "greeting": "Have you seen my nunchucks?",
     },

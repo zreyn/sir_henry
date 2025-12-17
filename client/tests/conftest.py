@@ -87,6 +87,7 @@ def mock_sounddevice():
     mock_sd.InputStream = MagicMock(return_value=mock_stream)
     return mock_sd
 
+<<<<<<< Updated upstream
 
 @pytest.fixture
 def mock_numpy():
@@ -94,3 +95,5 @@ def mock_numpy():
     mock_np = MagicMock()
     mock_np.clip = MagicMock(side_effect=lambda x, a, b: x)
     return mock_np
+=======
+>>>>>>> Stashed changes
