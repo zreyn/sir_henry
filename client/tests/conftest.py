@@ -35,16 +35,33 @@ def mock_livekit_rtc():
     mock_rtc.TrackKind = MagicMock()
     mock_rtc.TrackKind.KIND_AUDIO = "audio"
 
-    # Mock AudioStream
+    # Mock TrackSource
+    mock_rtc.TrackSource = MagicMock()
+    mock_rtc.TrackSource.SOURCE_MICROPHONE = 2
+
+    # Mock TrackPublishOptions
+    mock_rtc.TrackPublishOptions = MagicMock(return_value=MagicMock())
+
+    # Mock AudioSource
+    mock_audio_source = MagicMock()
+    mock_audio_source.capture_frame = AsyncMock()
+    mock_audio_source.aclose = AsyncMock()
+    mock_rtc.AudioSource = MagicMock(return_value=mock_audio_source)
+
+    # Mock AudioFrame
+    mock_rtc.AudioFrame = MagicMock()
+
+    # Mock AudioStream - yields AudioFrameEvent objects with .frame attribute
     class _MockAudioStream:
         def __init__(self, track):
             self.track = track
 
         def __aiter__(self):
             async def gen():
-                mock_frame = MagicMock()
-                mock_frame.data = b"\x00\x00" * 960
-                yield mock_frame
+                mock_frame_event = MagicMock()
+                mock_frame_event.frame = MagicMock()
+                mock_frame_event.frame.data = b"\x00\x00" * 960
+                yield mock_frame_event
 
             return gen()
 
@@ -52,8 +69,9 @@ def mock_livekit_rtc():
 
     # Mock LocalAudioTrack
     mock_audio_track = MagicMock()
+    mock_audio_track.sid = "TR_test"
     mock_rtc.LocalAudioTrack = MagicMock()
-    mock_rtc.LocalAudioTrack.create_microphone_track = MagicMock(
+    mock_rtc.LocalAudioTrack.create_audio_track = MagicMock(
         return_value=mock_audio_track
     )
 
@@ -66,4 +84,13 @@ def mock_sounddevice():
     mock_sd = MagicMock()
     mock_stream = MagicMock()
     mock_sd.RawOutputStream = MagicMock(return_value=mock_stream)
+    mock_sd.InputStream = MagicMock(return_value=mock_stream)
     return mock_sd
+
+
+@pytest.fixture
+def mock_numpy():
+    """Mock numpy module."""
+    mock_np = MagicMock()
+    mock_np.clip = MagicMock(side_effect=lambda x, a, b: x)
+    return mock_np
