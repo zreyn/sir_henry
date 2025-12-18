@@ -1466,3 +1466,337 @@ class TestKeyboardHandler:
             streamer = AudioStreamer(enable_aec=False)
             # Should not raise even if keyboard_thread is None
             streamer.stop_keyboard_handler()
+
+
+class TestInputCallbackDebugLogging:
+    """Test debug logging in input callback."""
+
+    def test_input_callback_debug_logging_after_5_seconds(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test debug logging triggers after 5 seconds."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer, BLOCKSIZE
+
+            loop = asyncio.new_event_loop()
+            streamer = AudioStreamer(enable_aec=False, loop=loop)
+
+            # Set last_debug_time to more than 5 seconds ago
+            streamer.last_debug_time = time.time() - 6.0
+
+            indata = np.zeros((BLOCKSIZE, 1), dtype=np.int16)
+            time_info = MagicMock()
+            time_info.currentTime = 0.0
+            time_info.inputBufferAdcTime = 0.0
+
+            streamer._input_callback(indata, BLOCKSIZE, time_info, None)
+
+            # After callback, last_debug_time should be updated
+            assert time.time() - streamer.last_debug_time < 1.0
+            loop.close()
+
+
+class TestInputDeviceChannelWarning:
+    """Test input device channel warning."""
+
+    def test_warns_on_insufficient_channels(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test warning when input device has fewer channels than needed."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        # Mock query_devices to return device with 0 input channels
+        mock_sounddevice.query_devices = MagicMock(
+            return_value={
+                "name": "Low Channel Device",
+                "max_input_channels": 0,  # Less than NUM_CHANNELS (1)
+                "default_samplerate": 48000,
+            }
+        )
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer
+
+            streamer = AudioStreamer(enable_aec=False)
+            # This should log a warning but not crash
+            streamer.start_audio_devices()
+
+
+class TestQueueExceptionHandling:
+    """Test exception handling when queueing audio frames."""
+
+    def test_handles_queue_exception(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test handling of exception when queueing audio frame."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer, BLOCKSIZE
+
+            loop = asyncio.new_event_loop()
+            streamer = AudioStreamer(enable_aec=False, loop=loop)
+
+            # Make call_soon_threadsafe raise an exception
+            loop.call_soon_threadsafe = MagicMock(side_effect=RuntimeError("Queue error"))
+
+            indata = np.zeros((BLOCKSIZE, 1), dtype=np.int16)
+            time_info = MagicMock()
+            time_info.currentTime = 0.0
+            time_info.inputBufferAdcTime = 0.0
+
+            # Should not raise
+            streamer._input_callback(indata, BLOCKSIZE, time_info, None)
+            loop.close()
+
+    def test_handles_no_loop(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test handling when no event loop is available."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer, BLOCKSIZE
+
+            # Create streamer without a loop
+            streamer = AudioStreamer(enable_aec=False, loop=None)
+
+            indata = np.zeros((BLOCKSIZE, 1), dtype=np.int16)
+            time_info = MagicMock()
+            time_info.currentTime = 0.0
+            time_info.inputBufferAdcTime = 0.0
+
+            # Should not raise even without a loop
+            streamer._input_callback(indata, BLOCKSIZE, time_info, None)
+
+
+class TestAECReverseStreamException:
+    """Test AEC reverse stream exception handling."""
+
+    def test_handles_reverse_stream_exception(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test handling of exception in process_reverse_stream."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        # Make process_reverse_stream raise an exception
+        mock_livekit_apm.AudioProcessingModule.return_value.process_reverse_stream.side_effect = RuntimeError(
+            "Reverse stream error"
+        )
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer, BLOCKSIZE
+
+            streamer = AudioStreamer(enable_aec=True)
+
+            # Add enough data to buffer
+            streamer.output_buffer.extend(b"\x00\x10" * BLOCKSIZE)
+
+            outdata = np.zeros((BLOCKSIZE, 1), dtype=np.int16)
+            time_info = MagicMock()
+            time_info.outputBufferDacTime = 0.0
+            time_info.currentTime = 0.0
+
+            # Should not raise
+            streamer._output_callback(outdata, BLOCKSIZE, time_info, None)
+
+
+class TestSimpleMeterNotRunning:
+    """Test _print_simple_meter when not running."""
+
+    def test_simple_meter_returns_when_not_running(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test _print_simple_meter returns early when not running."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer
+
+            streamer = AudioStreamer(enable_aec=False)
+            streamer.meter_running = False
+
+            with patch("sys.stdout") as mock_stdout:
+                # Call _print_simple_meter directly
+                streamer._print_simple_meter()
+                # Should not write anything to stdout
+                mock_stdout.write.assert_not_called()
+
+
+class TestAECProcessStreamException:
+    """Test AEC process_stream exception handling."""
+
+    def test_handles_process_stream_exception(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test handling of exception in process_stream."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        # Make process_stream raise an exception
+        mock_livekit_apm.AudioProcessingModule.return_value.process_stream.side_effect = RuntimeError(
+            "Process stream error"
+        )
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer, BLOCKSIZE
+
+            loop = asyncio.new_event_loop()
+            streamer = AudioStreamer(enable_aec=True, loop=loop)
+
+            indata = np.zeros((BLOCKSIZE, 1), dtype=np.int16)
+            time_info = MagicMock()
+            time_info.currentTime = 0.0
+            time_info.inputBufferAdcTime = 0.0
+
+            # Should not raise
+            streamer._input_callback(indata, BLOCKSIZE, time_info, None)
+            loop.close()
