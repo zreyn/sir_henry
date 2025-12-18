@@ -19,6 +19,7 @@ class TestHelperFunctions:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -29,9 +30,10 @@ class TestHelperFunctions:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -51,6 +53,7 @@ class TestHelperFunctions:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -61,9 +64,10 @@ class TestHelperFunctions:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -92,6 +96,7 @@ class TestAudioStreamer:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -102,9 +107,10 @@ class TestAudioStreamer:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -127,6 +133,7 @@ class TestAudioStreamer:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -137,9 +144,10 @@ class TestAudioStreamer:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -160,6 +168,7 @@ class TestAudioStreamer:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -170,9 +179,10 @@ class TestAudioStreamer:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -196,6 +206,7 @@ class TestAudioStreamer:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -206,9 +217,10 @@ class TestAudioStreamer:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -235,6 +247,7 @@ class TestAudioStreamer:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -245,9 +258,10 @@ class TestAudioStreamer:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -276,6 +290,7 @@ class TestAudioStreamer:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -286,9 +301,10 @@ class TestAudioStreamer:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -326,6 +342,7 @@ class TestAudioStreamer:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -336,9 +353,10 @@ class TestAudioStreamer:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -373,6 +391,7 @@ class TestAudioStreamer:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -383,9 +402,10 @@ class TestAudioStreamer:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -421,6 +441,7 @@ class TestAudioStreamer:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -431,9 +452,10 @@ class TestAudioStreamer:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -464,6 +486,7 @@ class TestAudioStreamer:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -474,9 +497,10 @@ class TestAudioStreamer:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -499,6 +523,7 @@ class TestAudioStreamer:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -509,9 +534,10 @@ class TestAudioStreamer:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -537,6 +563,7 @@ class TestParticipantTracking:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -547,9 +574,10 @@ class TestParticipantTracking:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -581,6 +609,7 @@ class TestParticipantTracking:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -591,9 +620,10 @@ class TestParticipantTracking:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -631,6 +661,7 @@ class TestMainFunction:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -643,9 +674,10 @@ class TestMainFunction:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -684,6 +716,7 @@ class TestMainFunction:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -696,9 +729,10 @@ class TestMainFunction:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -737,6 +771,7 @@ class TestMainFunction:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -749,9 +784,10 @@ class TestMainFunction:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -792,6 +828,7 @@ class TestConfigurationConstants:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -802,9 +839,10 @@ class TestConfigurationConstants:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -829,6 +867,7 @@ class TestInputCallbackEdgeCases:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -839,9 +878,10 @@ class TestInputCallbackEdgeCases:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -871,6 +911,7 @@ class TestInputCallbackEdgeCases:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -881,9 +922,10 @@ class TestInputCallbackEdgeCases:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -915,6 +957,7 @@ class TestInputCallbackEdgeCases:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -925,9 +968,10 @@ class TestInputCallbackEdgeCases:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -958,6 +1002,7 @@ class TestInputCallbackEdgeCases:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -973,9 +1018,10 @@ class TestInputCallbackEdgeCases:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -1008,6 +1054,7 @@ class TestOutputCallbackEdgeCases:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -1018,9 +1065,10 @@ class TestOutputCallbackEdgeCases:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -1046,6 +1094,7 @@ class TestOutputCallbackEdgeCases:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -1056,9 +1105,10 @@ class TestOutputCallbackEdgeCases:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -1090,6 +1140,7 @@ class TestOutputCallbackEdgeCases:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -1100,9 +1151,10 @@ class TestOutputCallbackEdgeCases:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -1134,6 +1186,7 @@ class TestOutputCallbackEdgeCases:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -1144,9 +1197,10 @@ class TestOutputCallbackEdgeCases:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -1181,6 +1235,7 @@ class TestMeterDisplay:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -1191,9 +1246,10 @@ class TestMeterDisplay:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -1217,6 +1273,7 @@ class TestMeterDisplay:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -1227,9 +1284,10 @@ class TestMeterDisplay:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -1252,6 +1310,7 @@ class TestMeterDisplay:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -1262,9 +1321,10 @@ class TestMeterDisplay:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -1290,6 +1350,7 @@ class TestMeterDisplay:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -1300,9 +1361,10 @@ class TestMeterDisplay:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -1336,6 +1398,7 @@ class TestStartAudioDevicesErrors:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -1348,9 +1411,10 @@ class TestStartAudioDevicesErrors:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,
@@ -1375,6 +1439,7 @@ class TestKeyboardHandler:
         mock_livekit_rtc,
         mock_sounddevice,
         mock_livekit_apm,
+        mock_livekit_api,
         mock_auth,
         mock_list_devices,
     ):
@@ -1385,9 +1450,10 @@ class TestKeyboardHandler:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
                 "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
                 "numpy": np,

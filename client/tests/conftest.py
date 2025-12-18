@@ -138,6 +138,17 @@ def mock_sounddevice():
 
 
 @pytest.fixture
+def mock_livekit_api():
+    """Mock livekit.api module."""
+    mock_api = MagicMock()
+    mock_api.AccessToken = MagicMock()
+    mock_api.RoomAgentDispatch = MagicMock()
+    mock_api.RoomConfiguration = MagicMock()
+    mock_api.VideoGrants = MagicMock()
+    return mock_api
+
+
+@pytest.fixture
 def mock_auth():
     """Mock auth module."""
     mock = MagicMock()

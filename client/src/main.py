@@ -32,6 +32,7 @@ import numpy as np
 from dotenv import load_dotenv
 from signal import SIGINT, SIGTERM
 from list_devices import list_audio_devices
+from auth import generate_token
 
 load_dotenv()
 logging.basicConfig(
@@ -839,6 +840,8 @@ async def main(participant_name: str, enable_aec: bool = True):
 
         # Connect to LiveKit room
         logger.info("Connecting to LiveKit room...")
+        token = generate_token(ROOM_NAME, participant_name, participant_name)
+        logger.info(f"Generated token for participant: {participant_name}")
         await room.connect(LIVEKIT_URL, token)
         logger.info("connected to room %s", room.name)
 
