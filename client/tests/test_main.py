@@ -2,71 +2,670 @@
 
 import asyncio
 import sys
-from unittest.mock import MagicMock, AsyncMock, patch
+import time
+import threading
+from unittest.mock import MagicMock, AsyncMock, patch, PropertyMock
 
 import pytest
+import numpy as np
 
 
-class TestClientConfiguration:
-    """Test client configuration loading."""
+class TestHelperFunctions:
+    """Test helper functions."""
 
-    def test_loads_environment_variables(
-        self, mock_env_vars, mock_livekit_rtc, mock_sounddevice
+    def test_esc_generates_escape_codes(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
     ):
-        """Test that URL and TOKEN are loaded from environment."""
+        """Test _esc generates proper ANSI escape codes."""
         if "main" in sys.modules:
             del sys.modules["main"]
 
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
-                "numpy": MagicMock(),
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
             },
         ):
-            from main import URL, TOKEN
+            from main import _esc
 
-            assert URL == "ws://localhost:7880"
-            assert TOKEN == "test-token"
+            assert _esc(31) == "\033[31m"
+            assert _esc(1, 32) == "\033[1;32m"
+            assert _esc(0) == "\033[0m"
 
-    def test_handles_missing_environment_variables(
-        self, mock_livekit_rtc, mock_sounddevice
+    def test_normalize_db_clamps_values(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
     ):
-        """Test behavior when environment variables are not set."""
+        """Test _normalize_db clamps and normalizes dB values."""
         if "main" in sys.modules:
             del sys.modules["main"]
 
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
-                "numpy": MagicMock(),
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
             },
         ):
-            with patch.dict("os.environ", {}, clear=True):
-                if "main" in sys.modules:
-                    del sys.modules["main"]
+            from main import _normalize_db
 
-                from main import URL, TOKEN
+            # Test normalization
+            assert _normalize_db(-35.0, -70.0, 0.0) == 0.5  # Midpoint
+            assert _normalize_db(-70.0, -70.0, 0.0) == 0.0  # Min
+            assert _normalize_db(0.0, -70.0, 0.0) == 1.0  # Max
 
-                assert URL is None
-                assert TOKEN is None
+            # Test clamping
+            assert _normalize_db(-100.0, -70.0, 0.0) == 0.0  # Below min
+            assert _normalize_db(10.0, -70.0, 0.0) == 1.0  # Above max
 
 
-class TestMain:
-    """Test main function."""
+class TestAudioStreamer:
+    """Test AudioStreamer class."""
+
+    def test_initialization(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test AudioStreamer initializes correctly."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer
+
+            streamer = AudioStreamer(enable_aec=True)
+
+            assert streamer.running is True
+            assert streamer.is_muted is False
+            assert streamer.enable_aec is True
+            assert streamer.audio_processor is not None
+
+    def test_initialization_without_aec(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test AudioStreamer initializes without AEC."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer
+
+            streamer = AudioStreamer(enable_aec=False)
+
+            assert streamer.enable_aec is False
+            assert streamer.audio_processor is None
+
+    def test_toggle_mute(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test toggle_mute toggles mute state."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer
+
+            streamer = AudioStreamer(enable_aec=False)
+
+            assert streamer.is_muted is False
+            streamer.toggle_mute()
+            assert streamer.is_muted is True
+            streamer.toggle_mute()
+            assert streamer.is_muted is False
+
+    def test_start_audio_devices(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test start_audio_devices creates input and output streams."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer
+
+            streamer = AudioStreamer(enable_aec=False)
+            streamer.start_audio_devices()
+
+            # Verify streams were created
+            mock_sounddevice.InputStream.assert_called_once()
+            mock_sounddevice.OutputStream.assert_called_once()
+
+            # Verify streams were started
+            mock_sounddevice.InputStream.return_value.start.assert_called_once()
+            mock_sounddevice.OutputStream.return_value.start.assert_called_once()
+
+    def test_stop_audio_devices(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test stop_audio_devices stops and closes streams."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer
+
+            streamer = AudioStreamer(enable_aec=False)
+            streamer.start_audio_devices()
+            streamer.stop_audio_devices()
+
+            # Verify streams were stopped and closed
+            mock_input = mock_sounddevice.InputStream.return_value
+            mock_output = mock_sounddevice.OutputStream.return_value
+
+            mock_input.stop.assert_called_once()
+            mock_input.close.assert_called_once()
+            mock_output.stop.assert_called_once()
+            mock_output.close.assert_called_once()
+
+    def test_input_callback_processes_audio(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test _input_callback processes microphone audio."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer, FRAME_SAMPLES, BLOCKSIZE
+
+            loop = asyncio.new_event_loop()
+            streamer = AudioStreamer(enable_aec=False, loop=loop)
+
+            # Create test audio data (must be correct shape for BLOCKSIZE)
+            indata = np.zeros((BLOCKSIZE, 1), dtype=np.int16)
+            indata[:, 0] = 1000  # Some audio level
+
+            # Create time_info mock
+            time_info = MagicMock()
+            time_info.currentTime = 0.0
+            time_info.inputBufferAdcTime = 0.0
+
+            # Call the callback
+            initial_count = streamer.input_callback_count
+            streamer._input_callback(indata, BLOCKSIZE, time_info, None)
+
+            # Verify callback was processed
+            assert streamer.input_callback_count == initial_count + 1
+            assert streamer.frames_processed > 0
+
+            loop.close()
+
+    def test_input_callback_handles_mute(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test _input_callback respects mute state."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer, BLOCKSIZE
+
+            loop = asyncio.new_event_loop()
+            streamer = AudioStreamer(enable_aec=False, loop=loop)
+            streamer.is_muted = True
+
+            # Create test audio data
+            indata = np.ones((BLOCKSIZE, 1), dtype=np.int16) * 1000
+
+            time_info = MagicMock()
+            time_info.currentTime = 0.0
+            time_info.inputBufferAdcTime = 0.0
+
+            # Call the callback while muted
+            streamer._input_callback(indata, BLOCKSIZE, time_info, None)
+
+            # Should still process (for meter) but send silence
+            assert streamer.frames_processed > 0
+
+            loop.close()
+
+    def test_output_callback_plays_audio(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test _output_callback plays received audio."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer, BLOCKSIZE
+
+            streamer = AudioStreamer(enable_aec=False)
+
+            # Add some audio to the output buffer
+            test_audio = b"\x00\x10" * BLOCKSIZE  # 2 bytes per sample
+            streamer.output_buffer.extend(test_audio)
+
+            # Create output array
+            outdata = np.zeros((BLOCKSIZE, 1), dtype=np.int16)
+
+            time_info = MagicMock()
+            time_info.outputBufferDacTime = 0.0
+            time_info.currentTime = 0.0
+
+            # Call the callback
+            streamer._output_callback(outdata, BLOCKSIZE, time_info, None)
+
+            # Buffer should be consumed
+            assert len(streamer.output_buffer) == 0
+            assert streamer.output_callback_count == 1
+
+    def test_output_callback_handles_empty_buffer(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test _output_callback handles empty buffer gracefully."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer, BLOCKSIZE
+
+            streamer = AudioStreamer(enable_aec=False)
+
+            # Output buffer is empty
+            outdata = np.zeros((BLOCKSIZE, 1), dtype=np.int16)
+
+            time_info = MagicMock()
+            time_info.outputBufferDacTime = 0.0
+            time_info.currentTime = 0.0
+
+            # Should not raise
+            streamer._output_callback(outdata, BLOCKSIZE, time_info, None)
+
+            # Output should be zeros (silence)
+            assert np.all(outdata == 0)
+
+    def test_print_audio_meter(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test print_audio_meter generates output."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer
+
+            streamer = AudioStreamer(enable_aec=False)
+            streamer.micro_db = -30.0
+
+            # Should not raise
+            with patch("sys.stdout") as mock_stdout:
+                streamer.print_audio_meter()
+
+    def test_init_and_restore_terminal(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test init_terminal and restore_terminal."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer
+
+            streamer = AudioStreamer(enable_aec=False)
+
+            with patch("sys.stdout") as mock_stdout:
+                streamer.init_terminal()
+                streamer.restore_terminal()
+
+
+class TestParticipantTracking:
+    """Test participant tracking functionality."""
+
+    def test_participant_added_on_connect(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test participants are tracked when they connect."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer
+
+            streamer = AudioStreamer(enable_aec=False)
+
+            # Simulate adding a participant
+            participant_id = "test-participant-123"
+            participant_name = "Test User"
+
+            with streamer.participants_lock:
+                streamer.participants[participant_id] = {
+                    "name": participant_name,
+                    "db_level": -40.0,
+                    "last_update": time.time(),
+                }
+
+            assert participant_id in streamer.participants
+            assert streamer.participants[participant_id]["name"] == participant_name
+
+    def test_participant_removed_on_disconnect(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test participants are removed when they disconnect."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer
+
+            streamer = AudioStreamer(enable_aec=False)
+
+            # Add then remove a participant
+            participant_id = "test-participant-123"
+
+            with streamer.participants_lock:
+                streamer.participants[participant_id] = {
+                    "name": "Test User",
+                    "db_level": -40.0,
+                    "last_update": time.time(),
+                }
+
+            with streamer.participants_lock:
+                del streamer.participants[participant_id]
+
+            assert participant_id not in streamer.participants
+
+
+class TestMainFunction:
+    """Test main async function."""
 
     @pytest.mark.asyncio
-    async def test_connects_to_room(
-        self, mock_env_vars, mock_livekit_rtc, mock_sounddevice
+    async def test_main_connects_to_room(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
     ):
-        """Test that main connects to the LiveKit room."""
+        """Test main function connects to LiveKit room."""
         if "main" in sys.modules:
             del sys.modules["main"]
 
@@ -75,112 +674,108 @@ class TestMain:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
-                "numpy": MagicMock(),
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+                "termios": MagicMock(),
+                "tty": MagicMock(),
+                "select": MagicMock(select=MagicMock(return_value=([], [], []))),
             },
         ):
             from main import main
 
-            with patch("asyncio.sleep", side_effect=KeyboardInterrupt):
-                try:
-                    await main()
-                except KeyboardInterrupt:
-                    pass
+            # Make the main loop exit quickly
+            call_count = 0
 
-            mock_room_instance.connect.assert_called_once_with(
-                "ws://localhost:7880", "test-token"
-            )
+            async def mock_sleep(duration):
+                nonlocal call_count
+                call_count += 1
+                if call_count > 2:
+                    raise KeyboardInterrupt()
+                await asyncio.sleep(0)
+
+            with patch("asyncio.sleep", side_effect=mock_sleep):
+                with patch("asyncio.wait_for", side_effect=asyncio.TimeoutError()):
+                    try:
+                        await main("test-user", enable_aec=False)
+                    except KeyboardInterrupt:
+                        pass
+
+            mock_room_instance.connect.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_publishes_microphone_track(
-        self, mock_env_vars, mock_livekit_rtc, mock_sounddevice
+    async def test_main_publishes_track(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
     ):
-        """Test that main publishes the microphone track with correct options."""
+        """Test main function publishes microphone track."""
         if "main" in sys.modules:
             del sys.modules["main"]
 
         mock_room_instance = mock_livekit_rtc.Room.return_value
-        mock_audio_track = (
-            mock_livekit_rtc.LocalAudioTrack.create_audio_track.return_value
-        )
 
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
-                "numpy": MagicMock(),
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+                "termios": MagicMock(),
+                "tty": MagicMock(),
+                "select": MagicMock(select=MagicMock(return_value=([], [], []))),
             },
         ):
             from main import main
 
-            with patch("asyncio.sleep", side_effect=KeyboardInterrupt):
-                try:
-                    await main()
-                except KeyboardInterrupt:
-                    pass
+            call_count = 0
 
-            # Verify AudioSource was created
-            mock_livekit_rtc.AudioSource.assert_called_once_with(48000, 1)
+            async def mock_sleep(duration):
+                nonlocal call_count
+                call_count += 1
+                if call_count > 2:
+                    raise KeyboardInterrupt()
+                await asyncio.sleep(0)
 
-            # Verify LocalAudioTrack was created
-            mock_livekit_rtc.LocalAudioTrack.create_audio_track.assert_called_once()
-            call_args = mock_livekit_rtc.LocalAudioTrack.create_audio_track.call_args
-            assert call_args[0][0] == "mic_track"
-
-            # Verify TrackPublishOptions was created with SOURCE_MICROPHONE
-            mock_livekit_rtc.TrackPublishOptions.assert_called_once()
+            with patch("asyncio.sleep", side_effect=mock_sleep):
+                with patch("asyncio.wait_for", side_effect=asyncio.TimeoutError()):
+                    try:
+                        await main("test-user", enable_aec=False)
+                    except KeyboardInterrupt:
+                        pass
 
             # Verify track was published
             mock_room_instance.local_participant.publish_track.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_registers_track_subscribed_handler(
-        self, mock_env_vars, mock_livekit_rtc, mock_sounddevice
+    async def test_main_disconnects_on_interrupt(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
     ):
-        """Test that main registers a track_subscribed event handler."""
-        if "main" in sys.modules:
-            del sys.modules["main"]
-
-        mock_room_instance = mock_livekit_rtc.Room.return_value
-        registered_events = []
-
-        def track_on_calls(event):
-            registered_events.append(event)
-            return lambda f: f
-
-        mock_room_instance.on = track_on_calls
-
-        with patch.dict(
-            "sys.modules",
-            {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
-                "livekit.rtc": mock_livekit_rtc,
-                "dotenv": MagicMock(),
-                "sounddevice": mock_sounddevice,
-                "numpy": MagicMock(),
-            },
-        ):
-            from main import main
-
-            with patch("asyncio.sleep", side_effect=KeyboardInterrupt):
-                try:
-                    await main()
-                except KeyboardInterrupt:
-                    pass
-
-            assert "track_subscribed" in registered_events
-
-    @pytest.mark.asyncio
-    async def test_disconnects_on_keyboard_interrupt(
-        self, mock_env_vars, mock_livekit_rtc, mock_sounddevice
-    ):
-        """Test that main disconnects from room on KeyboardInterrupt."""
+        """Test main function disconnects on KeyboardInterrupt."""
         if "main" in sys.modules:
             del sys.modules["main"]
 
@@ -189,592 +784,685 @@ class TestMain:
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
-                "numpy": MagicMock(),
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+                "termios": MagicMock(),
+                "tty": MagicMock(),
+                "select": MagicMock(select=MagicMock(return_value=([], [], []))),
             },
         ):
             from main import main
 
-            with patch("asyncio.sleep", side_effect=KeyboardInterrupt):
-                try:
-                    await main()
-                except KeyboardInterrupt:
-                    pass
+            call_count = 0
+
+            async def mock_sleep(duration):
+                nonlocal call_count
+                call_count += 1
+                if call_count > 2:
+                    raise KeyboardInterrupt()
+                await asyncio.sleep(0)
+
+            with patch("asyncio.sleep", side_effect=mock_sleep):
+                with patch("asyncio.wait_for", side_effect=asyncio.TimeoutError()):
+                    try:
+                        await main("test-user", enable_aec=False)
+                    except KeyboardInterrupt:
+                        pass
 
             mock_room_instance.disconnect.assert_called_once()
 
 
-class TestTrackSubscribedHandler:
-    """Test the track_subscribed event handler."""
+class TestConfigurationConstants:
+    """Test configuration constants."""
 
-    @pytest.mark.asyncio
-    async def test_handles_audio_track(
-        self, mock_env_vars, mock_livekit_rtc, mock_sounddevice
+    def test_constants_defined(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
     ):
-        """Test that audio tracks are handled correctly."""
+        """Test required constants are defined."""
         if "main" in sys.modules:
             del sys.modules["main"]
-
-        captured_handler = None
-
-        def capture_on(event):
-            def decorator(f):
-                nonlocal captured_handler
-                if event == "track_subscribed":
-                    captured_handler = f
-                return f
-
-            return decorator
-
-        mock_room_instance = mock_livekit_rtc.Room.return_value
-        mock_room_instance.on = capture_on
 
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
-                "numpy": MagicMock(),
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
             },
         ):
-            from main import main
+            from main import SAMPLE_RATE, NUM_CHANNELS, FRAME_SAMPLES, BLOCKSIZE
 
-            with patch("asyncio.sleep", side_effect=KeyboardInterrupt):
-                try:
-                    await main()
-                except KeyboardInterrupt:
-                    pass
+            assert SAMPLE_RATE == 48000
+            assert NUM_CHANNELS == 1
+            assert FRAME_SAMPLES == 480  # 10ms at 48kHz
+            assert BLOCKSIZE == 4800  # 100ms buffer
 
-            # Create mock track and participant
-            mock_track = MagicMock()
-            mock_track.kind = mock_livekit_rtc.TrackKind.KIND_AUDIO
-            mock_publication = MagicMock()
-            mock_participant = MagicMock()
-            mock_participant.identity = "test-participant"
 
-            assert captured_handler is not None
+class TestInputCallbackEdgeCases:
+    """Test edge cases in _input_callback."""
 
-            # Call the handler
-            captured_handler(mock_track, mock_publication, mock_participant)
-
-            # Let background task run
-            await asyncio.sleep(0)
-
-            # Verify AudioStream was created with the track
-            mock_livekit_rtc.AudioStream.assert_called_once_with(mock_track)
-
-    @pytest.mark.asyncio
-    async def test_ignores_non_audio_tracks(
-        self, mock_env_vars, mock_livekit_rtc, mock_sounddevice
+    def test_input_callback_logs_status(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
     ):
-        """Test that non-audio tracks are ignored."""
+        """Test _input_callback logs status warnings."""
         if "main" in sys.modules:
             del sys.modules["main"]
-
-        captured_handler = None
-
-        def capture_on(event):
-            def decorator(f):
-                nonlocal captured_handler
-                if event == "track_subscribed":
-                    captured_handler = f
-                return f
-
-            return decorator
-
-        mock_room_instance = mock_livekit_rtc.Room.return_value
-        mock_room_instance.on = capture_on
 
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
-                "numpy": MagicMock(),
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
             },
         ):
-            from main import main
+            from main import AudioStreamer, BLOCKSIZE
 
-            with patch("asyncio.sleep", side_effect=KeyboardInterrupt):
-                try:
-                    await main()
-                except KeyboardInterrupt:
-                    pass
+            loop = asyncio.new_event_loop()
+            streamer = AudioStreamer(enable_aec=False, loop=loop)
 
-            # Create mock video track
-            mock_track = MagicMock()
-            mock_track.kind = "video"  # Not audio
-            mock_publication = MagicMock()
-            mock_participant = MagicMock()
-            mock_participant.identity = "test-participant"
+            indata = np.zeros((BLOCKSIZE, 1), dtype=np.int16)
+            time_info = MagicMock()
+            time_info.currentTime = 0.0
+            time_info.inputBufferAdcTime = 0.0
 
-            assert captured_handler is not None
+            # Call with status
+            streamer._input_callback(indata, BLOCKSIZE, time_info, "input overflow")
 
-            # Call the handler
-            captured_handler(mock_track, mock_publication, mock_participant)
+            assert streamer.input_callback_count == 1
+            loop.close()
 
-            # AudioStream should not be created for video tracks
-            mock_livekit_rtc.AudioStream.assert_not_called()
-
-
-class TestPlayAudioStream:
-    """Test the _play_audio_stream function."""
-
-    @pytest.mark.asyncio
-    async def test_plays_audio_frames(self, mock_sounddevice):
-        """Test that audio frames are played through sounddevice."""
-        if "main" in sys.modules:
-            del sys.modules["main"]
-
-        mock_rtc = MagicMock()
-
-        # Create mock audio stream that yields one frame
-        class MockAudioStream:
-            def __aiter__(self):
-                async def gen():
-                    mock_frame_event = MagicMock()
-                    mock_frame_event.frame = MagicMock()
-                    mock_frame_event.frame.data = b"\x00\x01" * 960
-                    yield mock_frame_event
-
-                return gen()
-
-        mock_rtc.AudioStream = MockAudioStream
-
-        with patch.dict(
-            "sys.modules",
-            {
-                "livekit": MagicMock(rtc=mock_rtc),
-                "livekit.rtc": mock_rtc,
-                "dotenv": MagicMock(),
-                "sounddevice": mock_sounddevice,
-                "numpy": MagicMock(),
-            },
-        ):
-            from main import _play_audio_stream
-
-            audio_stream = MockAudioStream()
-            await _play_audio_stream(audio_stream)
-
-            # Verify sounddevice stream was used
-            mock_sounddevice.RawOutputStream.assert_called_once_with(
-                samplerate=48000,
-                channels=1,
-                dtype="int16",
-                blocksize=960,
-            )
-            mock_stream = mock_sounddevice.RawOutputStream.return_value
-            mock_stream.start.assert_called_once()
-            mock_stream.write.assert_called()
-            mock_stream.stop.assert_called_once()
-            mock_stream.close.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_handles_stream_error(self, mock_sounddevice):
-        """Test that errors during streaming are handled gracefully."""
-        if "main" in sys.modules:
-            del sys.modules["main"]
-
-        mock_rtc = MagicMock()
-
-        # Create mock audio stream that raises an exception
-        class MockAudioStreamWithError:
-            async def __aiter__(self):
-                raise RuntimeError("Stream error")
-                yield  # pragma: no cover
-
-        with patch.dict(
-            "sys.modules",
-            {
-                "livekit": MagicMock(rtc=mock_rtc),
-                "livekit.rtc": mock_rtc,
-                "dotenv": MagicMock(),
-                "sounddevice": mock_sounddevice,
-                "numpy": MagicMock(),
-            },
-        ):
-            from main import _play_audio_stream
-
-            audio_stream = MockAudioStreamWithError()
-            # Should not raise, error is caught internally
-            await _play_audio_stream(audio_stream)
-
-            # Stream should still be cleaned up
-            mock_stream = mock_sounddevice.RawOutputStream.return_value
-            mock_stream.stop.assert_called_once()
-            mock_stream.close.assert_called_once()
-
-
-class TestAGC:
-    """Test the AGC (Automatic Gain Control) class."""
-
-    def test_agc_initialization(self, mock_livekit_rtc, mock_sounddevice):
-        """Test AGC initializes with correct defaults."""
-        if "main" in sys.modules:
-            del sys.modules["main"]
-
-        with patch.dict(
-            "sys.modules",
-            {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
-                "livekit.rtc": mock_livekit_rtc,
-                "dotenv": MagicMock(),
-                "sounddevice": mock_sounddevice,
-                "numpy": MagicMock(),
-            },
-        ):
-            from main import AGC
-
-            agc = AGC()
-            assert agc.target_rms == 0.2
-            assert agc.min_gain == 1.0
-            assert agc.max_gain == 100.0
-            assert agc.noise_gate == 0.005
-
-    def test_agc_amplifies_quiet_signal(self, mock_livekit_rtc, mock_sounddevice):
-        """Test AGC amplifies quiet signals."""
-        if "main" in sys.modules:
-            del sys.modules["main"]
-
-        import numpy as np
-
-        with patch.dict(
-            "sys.modules",
-            {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
-                "livekit.rtc": mock_livekit_rtc,
-                "dotenv": MagicMock(),
-                "sounddevice": mock_sounddevice,
-            },
-        ):
-            from main import AGC
-
-            agc = AGC(target_rms=0.2, max_gain=100.0)
-
-            # Quiet input signal (RMS ~0.01)
-            quiet_signal = np.full((960, 1), 0.01, dtype=np.float32)
-
-            # Process the signal
-            output = agc.process(quiet_signal)
-
-            # Output should be amplified (louder than input)
-            input_rms = np.sqrt(np.mean(quiet_signal**2))
-            output_rms = np.sqrt(np.mean(output**2))
-            assert output_rms > input_rms
-
-    def test_agc_limits_loud_signal(self, mock_livekit_rtc, mock_sounddevice):
-        """Test AGC doesn't over-amplify loud signals."""
-        if "main" in sys.modules:
-            del sys.modules["main"]
-
-        import numpy as np
-
-        with patch.dict(
-            "sys.modules",
-            {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
-                "livekit.rtc": mock_livekit_rtc,
-                "dotenv": MagicMock(),
-                "sounddevice": mock_sounddevice,
-            },
-        ):
-            from main import AGC
-
-            agc = AGC(target_rms=0.2, max_gain=10.0)
-
-            # Loud input signal (RMS ~0.5)
-            loud_signal = np.full((960, 1), 0.5, dtype=np.float32)
-
-            # Process multiple times to let gain settle
-            for _ in range(10):
-                output = agc.process(loud_signal)
-
-            # Output should be soft-clipped (no values > 1)
-            assert np.all(np.abs(output) <= 1.0)
-
-    def test_agc_noise_gate(self, mock_livekit_rtc, mock_sounddevice):
-        """Test AGC doesn't amplify signals below noise gate."""
-        if "main" in sys.modules:
-            del sys.modules["main"]
-
-        import numpy as np
-
-        with patch.dict(
-            "sys.modules",
-            {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
-                "livekit.rtc": mock_livekit_rtc,
-                "dotenv": MagicMock(),
-                "sounddevice": mock_sounddevice,
-            },
-        ):
-            from main import AGC
-
-            agc = AGC(target_rms=0.2, noise_gate=0.01)
-            initial_gain = agc.current_gain
-
-            # Very quiet signal (below noise gate)
-            noise_signal = np.full((960, 1), 0.001, dtype=np.float32)
-
-            # Process the signal
-            agc.process(noise_signal)
-
-            # Gain should not have changed
-            assert agc.current_gain == initial_gain
-
-    def test_agc_release_increases_gain(self, mock_livekit_rtc, mock_sounddevice):
-        """Test AGC release phase increases gain when signal gets quieter."""
-        if "main" in sys.modules:
-            del sys.modules["main"]
-
-        import numpy as np
-
-        with patch.dict(
-            "sys.modules",
-            {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
-                "livekit.rtc": mock_livekit_rtc,
-                "dotenv": MagicMock(),
-                "sounddevice": mock_sounddevice,
-            },
-        ):
-            from main import AGC
-
-            # Create AGC with fast attack to quickly lower gain, slow release
-            agc = AGC(
-                target_rms=0.2,
-                min_gain=1.0,
-                max_gain=100.0,
-                attack_time=0.5,
-                release_time=0.5,
-            )
-
-            # First, process a very loud signal to quickly reduce gain to minimum
-            loud_signal = np.full((960, 1), 0.9, dtype=np.float32)
-            for _ in range(100):  # Many iterations to converge toward min_gain
-                agc.process(loud_signal)
-
-            low_gain = agc.current_gain
-
-            # Now process a very quiet signal that requires high gain
-            # RMS = 0.01, target = 0.2, desired_gain = 20
-            # Since desired_gain (20) > current_gain (~1), we're in release phase
-            quiet_signal = np.full((960, 1), 0.01, dtype=np.float32)
-            agc.process(quiet_signal)
-
-            # Gain should have increased (release phase)
-            assert agc.current_gain > low_gain
-
-
-class TestCaptureMicrophone:
-    """Test the _capture_microphone function."""
-
-    @pytest.mark.asyncio
-    async def test_creates_input_stream(self, mock_sounddevice, mock_livekit_rtc):
-        """Test that microphone capture creates an input stream."""
-        if "main" in sys.modules:
-            del sys.modules["main"]
-
-        mock_audio_source = MagicMock()
-        mock_audio_source.capture_frame = AsyncMock()
-
-        with patch.dict(
-            "sys.modules",
-            {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
-                "livekit.rtc": mock_livekit_rtc,
-                "dotenv": MagicMock(),
-                "sounddevice": mock_sounddevice,
-                "numpy": MagicMock(),
-            },
-        ):
-            from main import _capture_microphone
-
-            # Run capture briefly then cancel
-            task = asyncio.create_task(_capture_microphone(mock_audio_source))
-            await asyncio.sleep(0.01)
-            task.cancel()
-            try:
-                await task
-            except asyncio.CancelledError:
-                pass
-
-            # Verify InputStream was created with correct parameters
-            mock_sounddevice.InputStream.assert_called_once()
-            call_kwargs = mock_sounddevice.InputStream.call_args[1]
-            assert call_kwargs["samplerate"] == 48000
-            assert call_kwargs["channels"] == 1
-            assert call_kwargs["dtype"] == "float32"
-            assert call_kwargs["blocksize"] == 960
-            assert "callback" in call_kwargs
-
-    @pytest.mark.asyncio
-    async def test_audio_callback_processes_audio(
-        self, mock_sounddevice, mock_livekit_rtc
+    def test_input_callback_not_running(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
     ):
-        """Test that the audio callback processes and sends audio frames."""
+        """Test _input_callback returns early when not running."""
         if "main" in sys.modules:
             del sys.modules["main"]
-
-        import numpy as np
-
-        mock_audio_source = MagicMock()
-        mock_audio_source.capture_frame = AsyncMock()
-
-        captured_callback = None
-
-        def capture_input_stream(**kwargs):
-            nonlocal captured_callback
-            captured_callback = kwargs.get("callback")
-            return MagicMock()
-
-        mock_sounddevice.InputStream = capture_input_stream
 
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
             },
         ):
-            from main import _capture_microphone
+            from main import AudioStreamer, BLOCKSIZE
 
-            # Run capture briefly to set up callback
-            task = asyncio.create_task(_capture_microphone(mock_audio_source))
-            await asyncio.sleep(0.01)
+            loop = asyncio.new_event_loop()
+            streamer = AudioStreamer(enable_aec=False, loop=loop)
+            streamer.running = False
 
-            # Verify callback was captured
-            assert captured_callback is not None
+            indata = np.zeros((BLOCKSIZE, 1), dtype=np.int16)
+            time_info = MagicMock()
+            time_info.currentTime = 0.0
+            time_info.inputBufferAdcTime = 0.0
 
-            # Simulate audio input
-            mock_indata = np.zeros((960, 1), dtype=np.float32)
-            mock_indata[0, 0] = 0.5  # Some audio data
+            initial_frames = streamer.frames_processed
+            streamer._input_callback(indata, BLOCKSIZE, time_info, None)
 
-            # Call the callback
-            captured_callback(mock_indata, 960, None, None)
+            # Should not process when not running
+            assert streamer.frames_processed == initial_frames
+            loop.close()
 
-            # Give time for async operations
-            await asyncio.sleep(0.01)
-
-            # Verify AudioFrame was created
-            mock_livekit_rtc.AudioFrame.assert_called()
-
-            task.cancel()
-            try:
-                await task
-            except asyncio.CancelledError:
-                pass
-
-    @pytest.mark.asyncio
-    async def test_audio_callback_handles_status(
-        self, mock_sounddevice, mock_livekit_rtc
+    def test_input_callback_with_aec(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
     ):
-        """Test that the audio callback logs status messages."""
+        """Test _input_callback with AEC enabled."""
         if "main" in sys.modules:
             del sys.modules["main"]
-
-        import numpy as np
-
-        mock_audio_source = MagicMock()
-        mock_audio_source.capture_frame = AsyncMock()
-
-        captured_callback = None
-
-        def capture_input_stream(**kwargs):
-            nonlocal captured_callback
-            captured_callback = kwargs.get("callback")
-            return MagicMock()
-
-        mock_sounddevice.InputStream = capture_input_stream
 
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
             },
         ):
-            from main import _capture_microphone
+            from main import AudioStreamer, BLOCKSIZE
 
-            task = asyncio.create_task(_capture_microphone(mock_audio_source))
-            await asyncio.sleep(0.01)
+            loop = asyncio.new_event_loop()
+            streamer = AudioStreamer(enable_aec=True, loop=loop)
 
-            assert captured_callback is not None
+            indata = np.zeros((BLOCKSIZE, 1), dtype=np.int16)
+            indata[:, 0] = 1000
+            time_info = MagicMock()
+            time_info.currentTime = 0.0
+            time_info.inputBufferAdcTime = 0.0
 
-            # Simulate audio input with status
-            mock_indata = np.zeros((960, 1), dtype=np.float32)
+            streamer._input_callback(indata, BLOCKSIZE, time_info, None)
 
-            # Call callback with a status (should log warning but not fail)
-            captured_callback(mock_indata, 960, None, "input overflow")
+            # AEC should have been called
+            assert streamer.audio_processor.process_stream.called
+            loop.close()
 
-            await asyncio.sleep(0.01)
-
-            task.cancel()
-            try:
-                await task
-            except asyncio.CancelledError:
-                pass
-
-    @pytest.mark.asyncio
-    async def test_audio_callback_handles_error(
-        self, mock_sounddevice, mock_livekit_rtc
+    def test_input_callback_aec_delay_error(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
     ):
-        """Test that the audio callback handles errors gracefully."""
+        """Test _input_callback handles AEC delay error."""
         if "main" in sys.modules:
             del sys.modules["main"]
 
-        mock_audio_source = MagicMock()
-        mock_audio_source.capture_frame = AsyncMock()
-
-        captured_callback = None
-
-        def capture_input_stream(**kwargs):
-            nonlocal captured_callback
-            captured_callback = kwargs.get("callback")
-            return MagicMock()
-
-        mock_sounddevice.InputStream = capture_input_stream
-
-        # Make AudioFrame raise an error
-        mock_livekit_rtc.AudioFrame = MagicMock(side_effect=RuntimeError("Frame error"))
+        # Make set_stream_delay_ms raise an error
+        mock_livekit_apm.AudioProcessingModule.return_value.set_stream_delay_ms.side_effect = RuntimeError(
+            "Delay error"
+        )
 
         with patch.dict(
             "sys.modules",
             {
-                "livekit": MagicMock(rtc=mock_livekit_rtc),
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
                 "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
                 "dotenv": MagicMock(),
                 "sounddevice": mock_sounddevice,
-                "numpy": MagicMock(),
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
             },
         ):
-            from main import _capture_microphone
-            import numpy as np
+            from main import AudioStreamer, BLOCKSIZE
 
-            task = asyncio.create_task(_capture_microphone(mock_audio_source))
-            await asyncio.sleep(0.01)
+            loop = asyncio.new_event_loop()
+            streamer = AudioStreamer(enable_aec=True, loop=loop)
 
-            assert captured_callback is not None
+            indata = np.zeros((BLOCKSIZE, 1), dtype=np.int16)
+            time_info = MagicMock()
+            time_info.currentTime = 0.0
+            time_info.inputBufferAdcTime = 0.0
 
-            # Simulate audio input - callback should handle the error gracefully
-            mock_indata = np.zeros((960, 1), dtype=np.float32)
+            # Should not raise, error is caught
+            streamer._input_callback(indata, BLOCKSIZE, time_info, None)
+            assert streamer.input_callback_count == 1
+            loop.close()
 
-            # This should not raise, error is caught internally
-            captured_callback(mock_indata, 960, None, None)
 
-            task.cancel()
-            try:
-                await task
-            except asyncio.CancelledError:
-                pass
+class TestOutputCallbackEdgeCases:
+    """Test edge cases in _output_callback."""
+
+    def test_output_callback_logs_status(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test _output_callback logs status warnings."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer, BLOCKSIZE
+
+            streamer = AudioStreamer(enable_aec=False)
+            outdata = np.zeros((BLOCKSIZE, 1), dtype=np.int16)
+            time_info = MagicMock()
+            time_info.outputBufferDacTime = 0.0
+            time_info.currentTime = 0.0
+
+            # Call with status
+            streamer._output_callback(outdata, BLOCKSIZE, time_info, "output underflow")
+            assert streamer.output_callback_count == 1
+
+    def test_output_callback_not_running(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test _output_callback fills zeros when not running."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer, BLOCKSIZE
+
+            streamer = AudioStreamer(enable_aec=False)
+            streamer.running = False
+
+            # Add data to buffer
+            streamer.output_buffer.extend(b"\x00\x10" * BLOCKSIZE)
+
+            outdata = np.ones((BLOCKSIZE, 1), dtype=np.int16) * 1000
+            time_info = MagicMock()
+            time_info.outputBufferDacTime = 0.0
+            time_info.currentTime = 0.0
+
+            streamer._output_callback(outdata, BLOCKSIZE, time_info, None)
+
+            # Should fill with zeros when not running
+            assert np.all(outdata == 0)
+
+    def test_output_callback_partial_buffer(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test _output_callback handles partial buffer."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer, BLOCKSIZE
+
+            streamer = AudioStreamer(enable_aec=False)
+
+            # Add partial data (less than BLOCKSIZE)
+            partial_samples = 100
+            streamer.output_buffer.extend(b"\x00\x10" * partial_samples)
+
+            outdata = np.zeros((BLOCKSIZE, 1), dtype=np.int16)
+            time_info = MagicMock()
+            time_info.outputBufferDacTime = 0.0
+            time_info.currentTime = 0.0
+
+            streamer._output_callback(outdata, BLOCKSIZE, time_info, None)
+
+            # Buffer should be empty now
+            assert len(streamer.output_buffer) == 0
+
+    def test_output_callback_with_aec(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test _output_callback with AEC enabled."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer, BLOCKSIZE
+
+            streamer = AudioStreamer(enable_aec=True)
+
+            # Add enough data
+            streamer.output_buffer.extend(b"\x00\x10" * BLOCKSIZE)
+
+            outdata = np.zeros((BLOCKSIZE, 1), dtype=np.int16)
+            time_info = MagicMock()
+            time_info.outputBufferDacTime = 0.0
+            time_info.currentTime = 0.0
+
+            streamer._output_callback(outdata, BLOCKSIZE, time_info, None)
+
+            # AEC reverse stream should have been processed
+            assert streamer.audio_processor.process_reverse_stream.called
+
+
+class TestMeterDisplay:
+    """Test meter display functionality."""
+
+    def test_meter_not_running(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test print_audio_meter does nothing when meter not running."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer
+
+            streamer = AudioStreamer(enable_aec=False)
+            streamer.meter_running = False
+
+            with patch("sys.stdout") as mock_stdout:
+                streamer.print_audio_meter()
+                # Should not write to stdout when meter not running
+                mock_stdout.write.assert_not_called()
+
+    def test_simple_meter_with_mute(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test _print_simple_meter shows muted state."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer
+
+            streamer = AudioStreamer(enable_aec=False)
+            streamer.is_muted = True
+            streamer.micro_db = -30.0
+
+            with patch("sys.stdout"):
+                streamer._print_simple_meter()
+
+    def test_simple_meter_with_participants(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test _print_simple_meter shows participant meters."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer
+
+            streamer = AudioStreamer(enable_aec=False)
+            streamer.participants["test-123"] = {
+                "name": "Test User",
+                "db_level": -30.0,
+                "last_update": time.time(),
+            }
+
+            with patch("sys.stdout"):
+                streamer._print_simple_meter()
+
+    def test_simple_meter_removes_stale_participants(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test _print_simple_meter removes stale participants."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer
+
+            streamer = AudioStreamer(enable_aec=False)
+            # Add stale participant (last update > 5 seconds ago)
+            streamer.participants["stale-123"] = {
+                "name": "Stale User",
+                "db_level": -30.0,
+                "last_update": time.time() - 10.0,  # 10 seconds ago
+            }
+
+            with patch("sys.stdout"):
+                streamer._print_simple_meter()
+
+            # Stale participant should be removed
+            assert "stale-123" not in streamer.participants
+
+
+class TestStartAudioDevicesErrors:
+    """Test error handling in start_audio_devices."""
+
+    def test_handles_start_error(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test start_audio_devices handles errors."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        mock_sounddevice.InputStream.side_effect = RuntimeError("No input device")
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer
+
+            streamer = AudioStreamer(enable_aec=False)
+
+            with pytest.raises(RuntimeError):
+                streamer.start_audio_devices()
+
+
+class TestKeyboardHandler:
+    """Test keyboard handler functionality."""
+
+    def test_stop_keyboard_handler(
+        self,
+        mock_env_vars,
+        mock_livekit_rtc,
+        mock_sounddevice,
+        mock_livekit_apm,
+        mock_livekit_api,
+        mock_auth,
+        mock_list_devices,
+    ):
+        """Test stop_keyboard_handler."""
+        if "main" in sys.modules:
+            del sys.modules["main"]
+
+        with patch.dict(
+            "sys.modules",
+            {
+                "livekit": MagicMock(rtc=mock_livekit_rtc, api=mock_livekit_api),
+                "livekit.rtc": mock_livekit_rtc,
+                "livekit.rtc.apm": mock_livekit_apm,
+                "livekit.api": mock_livekit_api,
+                "dotenv": MagicMock(),
+                "sounddevice": mock_sounddevice,
+                "numpy": np,
+                "auth": mock_auth,
+                "list_devices": mock_list_devices,
+            },
+        ):
+            from main import AudioStreamer
+
+            streamer = AudioStreamer(enable_aec=False)
+            # Should not raise even if keyboard_thread is None
+            streamer.stop_keyboard_handler()
