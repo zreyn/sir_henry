@@ -84,8 +84,24 @@ async def entrypoint(ctx: JobContext):
     """
     logger.info(f"Agent connecting to room: {ctx.room.name}")
 
-    # Connect to the LiveKit room
-    await ctx.connect()
+    # Connect to the LiveKit room with auto_subscribe enabled
+    await ctx.connect(auto_subscribe=agents.AutoSubscribe.AUDIO_ONLY)
+    
+    # Log track subscription events for debugging
+    @ctx.room.on("track_subscribed")
+    def on_track_subscribed(track, publication, participant):
+        logger.info(f"Agent subscribed to track {publication.sid} from {participant.identity} (kind: {track.kind})")
+    
+    @ctx.room.on("track_published")
+    def on_track_published(publication, participant):
+        logger.info(f"Track published: {publication.sid} by {participant.identity} (kind: {publication.kind})")
+    
+    # Log existing participants and their tracks
+    logger.info(f"Remote participants in room: {len(ctx.room.remote_participants)}")
+    for participant in ctx.room.remote_participants.values():
+        logger.info(f"  - {participant.identity}: {len(participant.track_publications)} tracks")
+        for pub in participant.track_publications.values():
+            logger.info(f"    - {pub.sid}: kind={pub.kind}, subscribed={pub.subscribed}")
 
     # Create the agent session with our custom plugins
     session = AgentSession(
