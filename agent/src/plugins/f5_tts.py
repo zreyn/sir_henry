@@ -273,10 +273,24 @@ class F5TTS(tts.TTS):
         if conn_options is None:
             conn_options = APIConnectOptions()
 
-        logger.debug(f"Synthesizing ({len(text)} chars): {text[:50]}...")
+        clean_text = self._sanitize_text(text)
+        logger.debug(f"Synthesizing ({len(clean_text)} chars): {clean_text[:50]}...")
 
         return _F5ChunkedStream(
             tts_plugin=self,
-            input_text=text,
+            input_text=clean_text,
             conn_options=conn_options,
         )
+
+    def _sanitize_text(self, text: str) -> str:
+        """
+        Clean and truncate text to avoid model shape mismatches on very long inputs.
+        """
+        # Collapse whitespace/newlines
+        cleaned = " ".join(text.split())
+        # Trim excessive length
+        max_len = 400
+        if len(cleaned) > max_len:
+            logger.debug(f"Truncating TTS text from {len(cleaned)} to {max_len} chars")
+            cleaned = cleaned[:max_len]
+        return cleaned
