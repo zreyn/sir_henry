@@ -26,21 +26,25 @@ from livekit.api import (
     RoomConfiguration,
     VideoGrants,
 )
-import sounddevice as sd
-from dotenv import load_dotenv
-from signal import SIGINT, SIGTERM
-from livekit import rtc
 from livekit.rtc import apm
 import sounddevice as sd
 import numpy as np
+from dotenv import load_dotenv
+from signal import SIGINT, SIGTERM
 from list_devices import list_audio_devices
 
 load_dotenv()
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
+    datefmt="%H:%M:%S",
+)
+logger = logging.getLogger("sir_henry_client")
+
 # ensure LIVEKIT_URL, LIVEKIT_API_KEY, and LIVEKIT_API_SECRET are set in your .env file
 LIVEKIT_URL = os.environ.get("LIVEKIT_URL")
-ROOM_NAME = os.environ.get("ROOM_NAME")
+ROOM_NAME = os.environ.get("ROOM_NAME", "testing")
 
-URL = os.environ.get("LIVEKIT_URL")
 # If LIVEKIT_TOKEN is not provided, we can mint one locally using API key/secret
 LIVEKIT_TOKEN = os.environ.get("LIVEKIT_TOKEN")
 LIVEKIT_API_KEY = os.environ.get("LIVEKIT_API_KEY")
@@ -64,7 +68,7 @@ def _esc(*codes: int) -> str:
     return "\033[" + ";".join(str(c) for c in codes) + "m"
 
 
-async def main():
+async def main(participant_name: str = CLIENT_IDENTITY):
     """Main entry point for the LiveKit client."""
     token = LIVEKIT_TOKEN
     if not token:
@@ -94,6 +98,8 @@ async def main():
         )
 
     room = rtc.Room()
+
+
 def _normalize_db(amplitude_db: float, db_min: float, db_max: float) -> float:
     amplitude_db = max(db_min, min(amplitude_db, db_max))
     return (amplitude_db - db_min) / (db_max - db_min)
@@ -774,8 +780,6 @@ async def main(participant_name: str, enable_aec: bool = True):
                 )
 
     # Connect to LiveKit room
-    logger.info(f"Connecting to {URL}...")
-    await room.connect(URL,  )
     logger.info("Connected!")
 
     @room.on("participant_connected")
@@ -834,8 +838,8 @@ async def main(participant_name: str, enable_aec: bool = True):
         streamer.init_terminal()
 
         # Connect to LiveKit room
-    logger.info("Connecting to LiveKit room...")
-    await room.connect(LIVEKIT_URL, token)
+        logger.info("Connecting to LiveKit room...")
+        await room.connect(LIVEKIT_URL, token)
         logger.info("connected to room %s", room.name)
 
         # Publish microphone track
