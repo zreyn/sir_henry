@@ -36,5 +36,5 @@ ENV CHARACTER=sir_henry
 ENV TTS_DEVICE=""
 ENV STT_DEVICE=cpu
 
-# Run the livekit agent
-CMD ["uv", "run", "python", "src/main.py", "dev"]
+# Run the livekit agent using the build-time virtualenv (skip uv bootstrapping)
+CMD ["/app/.venv/bin/python", "src/main.py", "dev"]
