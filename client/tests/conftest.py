@@ -2,7 +2,7 @@
 
 import os
 import sys
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import MagicMock, AsyncMock, patch
 
 import pytest
 
@@ -14,7 +14,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 def mock_env_vars(monkeypatch):
     """Set up test environment variables."""
     monkeypatch.setenv("LIVEKIT_URL", "ws://localhost:7880")
-    monkeypatch.setenv("LIVEKIT_TOKEN", "test-token")
+    monkeypatch.setenv("ROOM_NAME", "test-room")
+    monkeypatch.setenv("LIVEKIT_API_KEY", "test-api-key")
+    monkeypatch.setenv("LIVEKIT_API_SECRET", "test-api-secret")
 
 
 @pytest.fixture
@@ -29,6 +31,7 @@ def mock_livekit_rtc():
     mock_room.on = MagicMock(side_effect=lambda event: lambda f: f)
     mock_room.local_participant = MagicMock()
     mock_room.local_participant.publish_track = AsyncMock()
+    mock_room.name = "test-room"
     mock_rtc.Room = MagicMock(return_value=mock_room)
 
     # Mock TrackKind
@@ -53,14 +56,19 @@ def mock_livekit_rtc():
 
     # Mock AudioStream - yields AudioFrameEvent objects with .frame attribute
     class _MockAudioStream:
-        def __init__(self, track):
+        def __init__(self, track, sample_rate=48000, num_channels=1):
             self.track = track
+            self.sample_rate = sample_rate
+            self.num_channels = num_channels
 
         def __aiter__(self):
             async def gen():
                 mock_frame_event = MagicMock()
                 mock_frame_event.frame = MagicMock()
-                mock_frame_event.frame.data = b"\x00\x00" * 960
+                mock_frame_event.frame.data = MagicMock()
+                mock_frame_event.frame.data.tobytes = MagicMock(
+                    return_value=b"\x00\x00" * 960
+                )
                 yield mock_frame_event
 
             return gen()
@@ -75,25 +83,71 @@ def mock_livekit_rtc():
         return_value=mock_audio_track
     )
 
+    # Mock RemoteParticipant
+    mock_rtc.RemoteParticipant = MagicMock()
+    mock_rtc.RemoteTrackPublication = MagicMock()
+    mock_rtc.Track = MagicMock()
+
     return mock_rtc
+
+
+@pytest.fixture
+def mock_livekit_apm():
+    """Mock livekit.rtc.apm module."""
+    mock_apm = MagicMock()
+    mock_processor = MagicMock()
+    mock_processor.process_stream = MagicMock()
+    mock_processor.process_reverse_stream = MagicMock()
+    mock_processor.set_stream_delay_ms = MagicMock()
+    mock_apm.AudioProcessingModule = MagicMock(return_value=mock_processor)
+    return mock_apm
 
 
 @pytest.fixture
 def mock_sounddevice():
     """Mock sounddevice module."""
     mock_sd = MagicMock()
-    mock_stream = MagicMock()
-    mock_sd.RawOutputStream = MagicMock(return_value=mock_stream)
-    mock_sd.InputStream = MagicMock(return_value=mock_stream)
+
+    # Mock InputStream
+    mock_input_stream = MagicMock()
+    mock_input_stream.active = True
+    mock_sd.InputStream = MagicMock(return_value=mock_input_stream)
+
+    # Mock OutputStream
+    mock_output_stream = MagicMock()
+    mock_output_stream.active = True
+    mock_sd.OutputStream = MagicMock(return_value=mock_output_stream)
+
+    # Mock RawOutputStream (for compatibility)
+    mock_sd.RawOutputStream = MagicMock(return_value=mock_output_stream)
+
+    # Mock default device
+    mock_sd.default = MagicMock()
+    mock_sd.default.device = (0, 1)  # (input_device, output_device)
+
+    # Mock query_devices
+    mock_sd.query_devices = MagicMock(
+        return_value={
+            "name": "Test Microphone",
+            "max_input_channels": 2,
+            "default_samplerate": 48000,
+        }
+    )
+
     return mock_sd
 
-<<<<<<< Updated upstream
 
 @pytest.fixture
-def mock_numpy():
-    """Mock numpy module."""
-    mock_np = MagicMock()
-    mock_np.clip = MagicMock(side_effect=lambda x, a, b: x)
-    return mock_np
-=======
->>>>>>> Stashed changes
+def mock_auth():
+    """Mock auth module."""
+    mock = MagicMock()
+    mock.generate_token = MagicMock(return_value="test-token")
+    return mock
+
+
+@pytest.fixture
+def mock_list_devices():
+    """Mock list_devices module."""
+    mock = MagicMock()
+    mock.list_audio_devices = MagicMock()
+    return mock
