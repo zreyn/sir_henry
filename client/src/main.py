@@ -19,7 +19,6 @@ import select
 import termios
 import tty
 
-<<<<<<< HEAD
 from livekit import rtc
 from livekit.api import (
     AccessToken,
@@ -28,8 +27,6 @@ from livekit.api import (
     VideoGrants,
 )
 import sounddevice as sd
-=======
->>>>>>> origin/piper
 from dotenv import load_dotenv
 from signal import SIGINT, SIGTERM
 from livekit import rtc
@@ -44,7 +41,6 @@ load_dotenv()
 LIVEKIT_URL = os.environ.get("LIVEKIT_URL")
 ROOM_NAME = os.environ.get("ROOM_NAME")
 
-<<<<<<< HEAD
 URL = os.environ.get("LIVEKIT_URL")
 # If LIVEKIT_TOKEN is not provided, we can mint one locally using API key/secret
 LIVEKIT_TOKEN = os.environ.get("LIVEKIT_TOKEN")
@@ -53,12 +49,10 @@ LIVEKIT_API_SECRET = os.environ.get("LIVEKIT_API_SECRET")
 LIVEKIT_ROOM = os.environ.get("LIVEKIT_ROOM", "testing")
 AGENT_NAME = os.environ.get("AGENT_NAME", "voice-agent")
 CLIENT_IDENTITY = os.environ.get("CLIENT_IDENTITY", "human-user")
-=======
 SAMPLE_RATE = 48000  # 48kHz to match DC Microphone native rate
 NUM_CHANNELS = 1
 FRAME_SAMPLES = 480  # 10ms at 48kHz - required for APM
 BLOCKSIZE = 4800  # 100ms buffer
->>>>>>> origin/piper
 
 # dB meter settings
 MAX_AUDIO_BAR = 20  # 20 chars wide
@@ -71,7 +65,6 @@ def _esc(*codes: int) -> str:
     return "\033[" + ";".join(str(c) for c in codes) + "m"
 
 
-<<<<<<< HEAD
 async def main():
     """Main entry point for the LiveKit client."""
     token = LIVEKIT_TOKEN
@@ -102,11 +95,9 @@ async def main():
         )
 
     room = rtc.Room()
-=======
 def _normalize_db(amplitude_db: float, db_min: float, db_max: float) -> float:
     amplitude_db = max(db_min, min(amplitude_db, db_max))
     return (amplitude_db - db_min) / (db_max - db_min)
->>>>>>> origin/piper
 
 
 class AudioStreamer:
