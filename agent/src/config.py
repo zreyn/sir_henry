@@ -48,6 +48,7 @@ CHARACTERS = {
             "Do not output words in all caps unless they are meant to be spelled out and avoid outputting physical descriptions of your actions or emootions. "
         ),
         "greeting": "Arr, ye callin' upon the spirit o' Sir Henry the Dread Pirate Roberts -- or what's left o` me, anyway.",
+        "tts_type": "f5",
     },
     "mr_meeseeks": {
         "ref_audio_path": "./ref/mrmeeseeks-reference.wav",
@@ -61,6 +62,7 @@ CHARACTERS = {
             "Do not output words in all caps unless they are meant to be spelled out and avoid outputting physical descriptions of your actions or emootions. "
         ),
         "greeting": "I'm Mr. Me Seeks, look at me!",
+        "tts_type": "f5",
     },
     "napoleon_dynamite": {
         "ref_audio_path": "./ref/napoleondynamite-reference.wav",
@@ -75,6 +77,22 @@ CHARACTERS = {
             "Do not output words in all caps unless they are meant to be spelled out and avoid outputting physical descriptions of your actions or emootions. "
         ),
         "greeting": "Have you seen my nunchucks?",
+        "tts_type": "f5",
+    },
+    "ryan": {
+        "system_prompt": (
+            "You are Ryan, a helpful and concise assistant. "
+            "Speak clearly and naturally in US English. "
+            "Keep responses short and avoid shouting or using all caps unless spelling something."
+        ),
+        "greeting": "Hi, I'm Ryan. How can I help?",
+        "tts_type": "piper",
+        "piper_model_path": "./models/models--rhaas--piper/en_US-ryan-high.onnx",
+        "piper_use_cuda": False,
+        "piper_speed": 1.0,
+        "piper_volume": 1.0,
+        "piper_noise_scale": 0.667,
+        "piper_noise_w": 0.8,
     },
 }
 
@@ -90,8 +108,17 @@ if SELECTED_CHARACTER not in CHARACTERS:
 logger.info(f"Loading character: {SELECTED_CHARACTER}")
 _char_config = CHARACTERS[SELECTED_CHARACTER]
 
-REF_AUDIO_PATH = _char_config["ref_audio_path"]
-REF_TEXT = _char_config["ref_text"]
-SPEED = _char_config["speed"]
+REF_AUDIO_PATH = _char_config.get("ref_audio_path", "")
+REF_TEXT = _char_config.get("ref_text", "")
+SPEED = _char_config.get("speed", 1.0)
 SYSTEM_PROMPT = _char_config["system_prompt"]
 GREETING = _char_config["greeting"]
+TTS_TYPE = _char_config.get("tts_type", "f5").lower()
+
+# Piper-specific config (used when TTS_TYPE == "piper")
+PIPER_MODEL_PATH = _char_config.get("piper_model_path")
+PIPER_USE_CUDA = _char_config.get("piper_use_cuda", False)
+PIPER_SPEED = _char_config.get("piper_speed", 1.0)
+PIPER_VOLUME = _char_config.get("piper_volume", 1.0)
+PIPER_NOISE_SCALE = _char_config.get("piper_noise_scale", 0.667)
+PIPER_NOISE_W = _char_config.get("piper_noise_w", 0.8)
