@@ -10,13 +10,25 @@ import logging
 import os
 
 from livekit import rtc
+from livekit.api import (
+    AccessToken,
+    RoomAgentDispatch,
+    RoomConfiguration,
+    VideoGrants,
+)
 import sounddevice as sd
 from dotenv import load_dotenv
 
 load_dotenv()
 
 URL = os.environ.get("LIVEKIT_URL")
-TOKEN = os.environ.get("LIVEKIT_TOKEN")
+# If LIVEKIT_TOKEN is not provided, we can mint one locally using API key/secret
+LIVEKIT_TOKEN = os.environ.get("LIVEKIT_TOKEN")
+LIVEKIT_API_KEY = os.environ.get("LIVEKIT_API_KEY")
+LIVEKIT_API_SECRET = os.environ.get("LIVEKIT_API_SECRET")
+LIVEKIT_ROOM = os.environ.get("LIVEKIT_ROOM", "testing")
+AGENT_NAME = os.environ.get("AGENT_NAME", "voice-agent")
+CLIENT_IDENTITY = os.environ.get("CLIENT_IDENTITY", "human-user")
 
 logging.basicConfig(
     level=logging.INFO,
@@ -53,6 +65,33 @@ async def _play_audio_stream(audio_stream: rtc.AudioStream) -> None:
 
 async def main():
     """Main entry point for the LiveKit client."""
+    token = LIVEKIT_TOKEN
+    if not token:
+        if not (LIVEKIT_API_KEY and LIVEKIT_API_SECRET):
+            raise RuntimeError(
+                "LIVEKIT_TOKEN is not set and LIVEKIT_API_KEY/SECRET are missing. "
+                "Set LIVEKIT_TOKEN, or provide LIVEKIT_API_KEY and LIVEKIT_API_SECRET to mint a token."
+            )
+        token = (
+            AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET)
+            .with_identity(CLIENT_IDENTITY)
+            .with_grants(VideoGrants(room_join=True, room=LIVEKIT_ROOM))
+            .with_room_config(
+                RoomConfiguration(
+                    agents=[
+                        RoomAgentDispatch(
+                            agent_name=AGENT_NAME,
+                            metadata='{"client_identity": "%s"}' % CLIENT_IDENTITY,
+                        )
+                    ]
+                )
+            )
+            .to_jwt()
+        )
+        logger.info(
+            f"Issued token for room '{LIVEKIT_ROOM}' with agent dispatch '{AGENT_NAME}'."
+        )
+
     room = rtc.Room()
 
     @room.on("track_subscribed")
@@ -64,7 +103,7 @@ async def main():
 
     # Connect to LiveKit room
     logger.info(f"Connecting to {URL}...")
-    await room.connect(URL, TOKEN)
+    await room.connect(URL, token)
     logger.info("Connected!")
 
     # Create and publish microphone track using built-in WebRTC capture (AEC/NS/AGC)
