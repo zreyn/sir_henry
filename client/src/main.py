@@ -774,23 +774,10 @@ async def main(participant_name: str, enable_aec: bool = True):
                     f"Ignoring additional remote audio track from {participant.identity}; active playback is participant {streamer.active_remote_participant_id}"
                 )
 
-<<<<<<< HEAD
     # Connect to LiveKit room
     logger.info(f"Connecting to {URL}...")
     await room.connect(URL, token)
     logger.info("Connected!")
-=======
-    @room.on("track_published")
-    def on_track_published(
-        publication: rtc.RemoteTrackPublication, participant: rtc.RemoteParticipant
-    ):
-        logger.info(
-            "track published: %s from participant %s (%s)",
-            publication.sid,
-            participant.sid,
-            participant.identity,
-        )
->>>>>>> origin/piper
 
     @room.on("participant_connected")
     def on_participant_connected(participant: rtc.RemoteParticipant):
