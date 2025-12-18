@@ -67,8 +67,9 @@ async def main():
     await room.connect(URL, TOKEN)
     logger.info("Connected!")
 
-    # Create and publish microphone track using WebRTC built-in capture (AEC/NS/AGC)
-    local_audio_track = rtc.LocalAudioTrack.create_microphone_track("mic_track")
+    # Create and publish microphone track using built-in WebRTC capture (AEC/NS/AGC)
+    audio_source = rtc.AudioSource.capture()
+    local_audio_track = rtc.LocalAudioTrack.create_audio_track("mic_track", audio_source)
     await room.local_participant.publish_track(local_audio_track)
     logger.info("Microphone track published (WebRTC capture).")
 
