@@ -5,11 +5,14 @@ Custom Faster-Whisper STT plugin for livekit-agents.
 from __future__ import annotations
 
 import asyncio
+import logging
 from dataclasses import dataclass
 
 import numpy as np
 
 from livekit.agents import stt, utils
+
+logger = logging.getLogger("sir_henry")
 
 
 @dataclass
@@ -105,6 +108,10 @@ class FasterWhisperSTT(stt.STT):
 
         # Collect all text from segments
         text = "".join([segment.text for segment in segments]).strip()
+
+        # Log recognized speech for visibility
+        if text:
+            logger.info(f"Client said: {text}")
 
         return stt.SpeechEvent(
             type=stt.SpeechEventType.FINAL_TRANSCRIPT,
