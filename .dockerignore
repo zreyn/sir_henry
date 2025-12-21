@@ -47,10 +47,8 @@ Thumbs.db
 .env
 .env.*
 
-# Model files (these should be mounted as volumes)
+# Large model files (optional - remove these lines to bake models into images)
 *.gguf
-*.safetensors
-agent/models/*
 
 # Output files
 **/last_output.wav

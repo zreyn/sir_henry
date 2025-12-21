@@ -53,8 +53,7 @@ services:
     ports:
       - "11800:11800"
     volumes:
-      # CRITICAL: Persist downloaded models so they don't re-download
-      - huggingface_cache:/root/.cache/huggingface
+      # Mount reference audio files
       - ./f5-tts-service/ref:/app/ref:ro 
     deploy:
       resources:
@@ -125,6 +124,4 @@ volumes:
   ollama_data:
     driver: local
   webui_data:
-    driver: local
-  huggingface_cache:
     driver: local

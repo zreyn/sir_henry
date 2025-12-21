@@ -17,7 +17,7 @@ logger = logging.getLogger("sir_henry")
 
 @dataclass
 class FasterWhisperOptions:
-    model_size: str = "small"
+    model_path: str = "./models/faster-whisper-small"
     device: str = "cpu"
     compute_type: str | None = None
     language: str | None = None
@@ -35,7 +35,7 @@ class FasterWhisperSTT(stt.STT):
     def __init__(
         self,
         *,
-        model_size: str = "small",
+        model_path: str = "./models/faster-whisper-small",
         device: str = "cpu",
         compute_type: str | None = None,
         language: str | None = None,
@@ -51,7 +51,7 @@ class FasterWhisperSTT(stt.STT):
             compute_type = "float16" if device == "cuda" else "int8"
 
         self._opts = FasterWhisperOptions(
-            model_size=model_size,
+            model_path=model_path,
             device=device,
             compute_type=compute_type,
             language=language,
@@ -72,9 +72,10 @@ class FasterWhisperSTT(stt.STT):
         from faster_whisper import WhisperModel
 
         self._model = WhisperModel(
-            self._opts.model_size,
+            self._opts.model_path,
             device=self._opts.device,
             compute_type=self._opts.compute_type,
+            local_files_only=True,
         )
         self._loaded = True
 

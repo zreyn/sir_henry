@@ -88,7 +88,7 @@ CHARACTERS = {
         ),
         "greeting": "Hi, I'm Ryan. How can I help you today?",
         "tts_type": "piper",
-        "piper_model_path": "./models/models--rhaas--piper/en_US-ryan-high.onnx",
+        "piper_model_path": "./models/piper/en/en_US/ryan/high/en_US-ryan-high.onnx",
         "piper_use_cuda": False,
         "piper_speed": 1.0,
         "piper_volume": 1.0,

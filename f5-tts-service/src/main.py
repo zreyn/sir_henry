@@ -11,11 +11,14 @@ import logging
 from f5_tts.model import DiT
 from f5_tts.infer.utils_infer import load_model, load_vocoder, infer_process, preprocess_ref_audio_text
 
-from huggingface_hub import hf_hub_download
-
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("f5-tts-service")
+
+# Model paths (pre-downloaded, no network access needed)
+F5_MODEL_PATH = "./models/f5-tts/F5TTS_v1_Base/model_1250000.safetensors"
+F5_VOCAB_PATH = "./models/f5-tts/F5TTS_v1_Base/vocab.txt"
+VOCOS_PATH = "./models/vocos-mel-24khz"
 
 # Global model state
 state = {
@@ -27,31 +30,18 @@ state = {
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Load models once at container startup"""
+    """Load models once at container startup (no downloads)"""
     logger.info(f"Loading F5-TTS on {state['device']}...")
-    
-    ckpt_path = hf_hub_download(
-        repo_id="SWivid/F5-TTS",
-        filename="F5TTS_v1_Base/model_1250000.safetensors",
-        cache_dir="./models/",
-    )
-    vocab_file = hf_hub_download(
-        repo_id="SWivid/F5-TTS",
-        filename="F5TTS_v1_Base/vocab.txt",
-        cache_dir="./models/",
-    )
 
-    state["vocoder"] = load_vocoder(
-        is_local=True, local_path="./models/models--charactr--vocos-mel-24khz"
-    )
-    
+    state["vocoder"] = load_vocoder(is_local=True, local_path=VOCOS_PATH)
+
     # Load DiT Model
     state["model"] = load_model(
         model_cls=DiT,
         model_cfg=dict(dim=1024, depth=22, heads=16, ff_mult=2, text_dim=512, conv_layers=4),
-        ckpt_path=ckpt_path,
+        ckpt_path=F5_MODEL_PATH,
         mel_spec_type="vocos",
-        vocab_file=vocab_file,
+        vocab_file=F5_VOCAB_PATH,
         ode_method="euler",
         use_ema=True,
         device=state["device"]

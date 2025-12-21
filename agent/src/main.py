@@ -71,7 +71,7 @@ def prewarm(proc: JobProcess):
     logger.info("F5-TTS initialized.")
 
     proc.userdata["stt"] = FasterWhisperSTT(
-        model_size="small",
+        model_path="./models/faster-whisper-small",
         device=STT_DEVICE,
         language="en",  # force English to avoid misdetection
     )
