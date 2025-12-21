@@ -31,7 +31,6 @@ import sounddevice as sd
 import numpy as np
 from dotenv import load_dotenv
 from signal import SIGINT, SIGTERM
-from list_devices import list_audio_devices
 from auth import generate_token
 
 load_dotenv()
