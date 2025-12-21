@@ -31,7 +31,6 @@ import sounddevice as sd
 import numpy as np
 from dotenv import load_dotenv
 from signal import SIGINT, SIGTERM
-from list_devices import list_audio_devices
 from auth import generate_token
 
 load_dotenv()
@@ -45,14 +44,12 @@ logger = logging.getLogger("sir_henry_client")
 # ensure LIVEKIT_URL, LIVEKIT_API_KEY, and LIVEKIT_API_SECRET are set in your .env file
 LIVEKIT_URL = os.environ.get("LIVEKIT_URL")
 ROOM_NAME = os.environ.get("ROOM_NAME", "testing")
-
-# If LIVEKIT_TOKEN is not provided, we can mint one locally using API key/secret
-LIVEKIT_TOKEN = os.environ.get("LIVEKIT_TOKEN")
 LIVEKIT_API_KEY = os.environ.get("LIVEKIT_API_KEY")
 LIVEKIT_API_SECRET = os.environ.get("LIVEKIT_API_SECRET")
 LIVEKIT_ROOM = os.environ.get("LIVEKIT_ROOM", "testing")
 AGENT_NAME = os.environ.get("AGENT_NAME", "voice-agent")
 CLIENT_IDENTITY = os.environ.get("CLIENT_IDENTITY", "human-user")
+
 SAMPLE_RATE = 48000  # 48kHz to match DC Microphone native rate
 NUM_CHANNELS = 1
 FRAME_SAMPLES = 480  # 10ms at 48kHz - required for APM
@@ -67,38 +64,6 @@ FPS = 16
 
 def _esc(*codes: int) -> str:
     return "\033[" + ";".join(str(c) for c in codes) + "m"
-
-
-async def _legacy_main(participant_name: str = CLIENT_IDENTITY):  # pragma: no cover
-    """Legacy main entry point - not used, kept for reference."""
-    token = LIVEKIT_TOKEN
-    if not token:
-        if not (LIVEKIT_API_KEY and LIVEKIT_API_SECRET):
-            raise RuntimeError(
-                "LIVEKIT_TOKEN is not set and LIVEKIT_API_KEY/SECRET are missing. "
-                "Set LIVEKIT_TOKEN, or provide LIVEKIT_API_KEY and LIVEKIT_API_SECRET to mint a token."
-            )
-        token = (
-            AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET)
-            .with_identity(CLIENT_IDENTITY)
-            .with_grants(VideoGrants(room_join=True, room=LIVEKIT_ROOM))
-            .with_room_config(
-                RoomConfiguration(
-                    agents=[
-                        RoomAgentDispatch(
-                            agent_name=AGENT_NAME,
-                            metadata='{"client_identity": "%s"}' % CLIENT_IDENTITY,
-                        )
-                    ]
-                )
-            )
-            .to_jwt()
-        )
-        logger.info(
-            f"Issued token for room '{LIVEKIT_ROOM}' with agent dispatch '{AGENT_NAME}'."
-        )
-
-    room = rtc.Room()
 
 
 def _normalize_db(amplitude_db: float, db_min: float, db_max: float) -> float:
@@ -181,9 +146,6 @@ class AudioStreamer:
         try:
             self.logger.info("Starting audio devices...")
 
-            # List all devices for debugging
-            list_audio_devices()
-
             # Get device info - but override input device to use working microphone
             input_device, output_device = sd.default.device
 
@@ -225,7 +187,7 @@ class AudioStreamer:
             # Start output stream
             self.output_stream = sd.OutputStream(
                 callback=self._output_callback,
-        dtype="int16",
+                dtype="int16",
                 channels=NUM_CHANNELS,
                 device=output_device,
                 samplerate=SAMPLE_RATE,
