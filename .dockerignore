@@ -47,9 +47,9 @@ Thumbs.db
 *.md
 !README.md
 
-# Environment files
-.env
-.env.*
+# # Environment files
+# .env
+# .env.*
 
 # Large model files (optional - remove these lines to bake models into images)
 *.gguf
