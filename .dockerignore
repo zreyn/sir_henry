@@ -17,6 +17,10 @@ venv/
 env/
 ENV/
 
+# Python version pinning (use container's Python)
+.python-version
+**/.python-version
+
 # Build artifacts
 build/
 dist/
