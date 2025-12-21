@@ -12,7 +12,7 @@ logging.basicConfig(
 logger = logging.getLogger("sir_henry")
 
 # Reduce noisy LiveKit internals
-logging.getLogger("livekit.agents").setLevel(logging.ERROR)
+logging.getLogger("livekit.agents").setLevel(logging.INFO)
 
 # LiveKit Configuration
 LIVEKIT_URL = os.environ.get("LIVEKIT_URL", "ws://localhost:7880")

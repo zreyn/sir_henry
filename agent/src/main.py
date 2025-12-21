@@ -50,6 +50,7 @@ class VoiceAgent(Agent):
     async def on_enter(self):
         """Called when the agent enters a session."""
         # Generate an initial greeting
+        logger.info(f"Generating greeting: '{GREETING}'")
         self.session.generate_reply(
             instructions=f"Introduce yourself briefly with this greeting: '{GREETING}'."
         )
@@ -157,7 +158,7 @@ async def entrypoint(ctx: JobContext):
         _transcription_time = time.perf_counter()
         transcript = getattr(ev, "transcript", "")
         if transcript:
-            logger.debug(f"User said: {transcript[:80]}...")
+            logger.info(f"User said: {transcript[:80]}...")
 
     @session.on("agent_state_changed")
     def on_agent_state_changed(ev) -> None:
@@ -183,8 +184,7 @@ def main():
     # Create the agent server
     worker = agents.WorkerOptions(
         entrypoint_fnc=entrypoint,
-        prewarm_fnc=prewarm,
-        agent_name="voice-agent",
+        prewarm_fnc=prewarm
     )
 
     # Run the agent
