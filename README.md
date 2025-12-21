@@ -39,52 +39,29 @@ docker run --rm --gpus all nvidia/cuda:12.0.0-base-ubuntu22.04 nvidia-smi
 
 ## Usage
 
-# Start all services
+# Download the big files I didn't want in git:
+```
+cd agent && uv run python src/download_models.py
+cd f5-tts-service && uv run python src/download_models.py
+```
+
+# Start/stop all services or view logs using docker compose
 ```
 docker compose up -d
-```
 
-# View logs
-```
-docker compose logs -f ollama
-docker compose logs -f agent
-```
+docker logs -f <service>
+docker logs <service> 2>&1 | grep <whatever>
 
-# Stop all services
-```
 docker compose down
 ```
 
-For a client, start with the livekit CLI: https://docs.livekit.io/home/cli/
-
-Auto-generate token and join room:
+If you want to use the `.env.user` file for settings:
 ```
-lk room join \
-  --url ws://YOUR_SERVER_IP:7880 \
-  --api-key devkey \
-  --api-secret secret \
-  --room my-room \
-  --identity user1
-  ```
-
-Generate a token:
-```
-lk token create \
-  --api-key devkey --api-secret secret \
-  --join --room testing \
-  --identity human-user \
-  --valid-for 24h
+docker compose --env-file .env.user up
 ```
 
-Dispatch an agent manually:
-```
-lk dispatch create --url ws://localhost:7880 --api-key devkey --api-secret secret --room testing --agent-name voice-agent
-```
+For Livekit things, they have a CLI: https://docs.livekit.io/home/cli/
 
-List the rooms:
-```
-lk room list --url ws://localhost:7880 --api-key devkey --api-secret secret
-```
 
 For development, you can use a docker-compose.override.yml file to mount the agent code into the voice-agent container for quicker iteration:
 ```
@@ -98,15 +75,4 @@ services:
       - ./agent/ref:/app/ref:ro
     # Use 'start' mode for development (auto-reloads on file changes in dev mode)
     command: ["uv", "run", "python", "src/main.py", "dev"]
-```
-
-Or, you can rebuild the agent like this:
-```
-docker compose build agent
-docker compose up -d agent
-```
-
-If you want to use the `.env.user` file for settings:
-```
-docker compose --env-file .env.user up
 ```

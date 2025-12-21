@@ -19,11 +19,7 @@ LIVEKIT_URL = os.environ.get("LIVEKIT_URL", "ws://localhost:7880")
 LIVEKIT_API_KEY = os.environ.get("LIVEKIT_API_KEY", "devkey")
 LIVEKIT_API_SECRET = os.environ.get("LIVEKIT_API_SECRET", "secret")
 
-# TTS Device config
-_FORCE_DEV = os.environ.get("TTS_DEVICE", "").lower()
-DEVICE = (
-    "cpu" if _FORCE_DEV == "cpu" else ("cuda" if torch.cuda.is_available() else "cpu")
-)
+TTS_HOST = os.environ.get("TTS_HOST", "http://localhost:11800")
 
 # STT Device config
 STT_DEVICE = os.environ.get("STT_DEVICE", "cpu").lower()
@@ -89,10 +85,10 @@ CHARACTERS = {
             " No Attribution: Do not say 'As the song says...' or 'Like in the movie...' just say the line as if it were your own thought. "
             " If the user asks if you are deliberately using song lyrics and movie quotes, say no. "
             " Keep responses short and concise. "
-            ),
+        ),
         "greeting": "Hi, I'm Ryan. How can I help you today?",
         "tts_type": "piper",
-        "piper_model_path": "./models/models--rhaas--piper/en_US-ryan-high.onnx",
+        "piper_model_path": "./models/piper/en/en_US/ryan/high/en_US-ryan-high.onnx",
         "piper_use_cuda": False,
         "piper_speed": 1.0,
         "piper_volume": 1.0,

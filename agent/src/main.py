@@ -13,7 +13,6 @@ from livekit import agents
 from livekit.agents import AgentSession, Agent, JobContext, JobProcess
 from livekit.plugins import openai as lk_openai
 from livekit.plugins import silero
-from plugins.piper_tts import PiperTTS
 
 from config import (
     logger,
@@ -22,12 +21,12 @@ from config import (
     REF_AUDIO_PATH,
     REF_TEXT,
     SPEED,
-    DEVICE,
+    TTS_HOST,
+    TTS_TYPE,
     STT_DEVICE,
     OLLAMA_HOST,
     OLLAMA_MODEL,
     OLLAMA_TEMPERATURE,
-    TTS_TYPE,
     PIPER_MODEL_PATH,
     PIPER_USE_CUDA,
     PIPER_SPEED,
@@ -62,18 +61,15 @@ def prewarm(proc: JobProcess):
     This reduces latency when the first user connects.
     """
     # Import heavy plugins here to avoid multiprocessing spawn issues
-    from plugins import F5TTS, FasterWhisperSTT
+    from plugins import F5TTS, FasterWhisperSTT, PiperTTS
 
     logger.info("Prewarming models...")
 
-    # Load Silero VAD
     proc.userdata["vad"] = silero.VAD.load()
     logger.info("Silero VAD loaded.")
 
-    # Initialize F5-TTS (will lazy-load model on first use)
+    # Load TTS based on character's tts_type
     if TTS_TYPE == "piper":
-        if not PIPER_MODEL_PATH:
-            raise ValueError("Piper TTS selected but no model path provided.")
         proc.userdata["tts"] = PiperTTS(
             model_path=PIPER_MODEL_PATH,
             use_cuda=PIPER_USE_CUDA,
@@ -88,15 +84,12 @@ def prewarm(proc: JobProcess):
             ref_audio_path=REF_AUDIO_PATH,
             ref_text=REF_TEXT,
             speed=SPEED,
-            device=DEVICE,
+            service_url=TTS_HOST,
         )
-        # Force-load TTS weights now so first reply is fast
-        proc.userdata["tts"]._ensure_loaded()
-        logger.info("F5-TTS initialized and warmed.")
+        logger.info("F5-TTS initialized.")
 
-    # Initialize Faster-Whisper STT
     proc.userdata["stt"] = FasterWhisperSTT(
-        model_size="small",
+        model_path="./models/faster-whisper-small",
         device=STT_DEVICE,
         language="en",  # force English to avoid misdetection
     )
@@ -182,10 +175,7 @@ def main():
     logger.info("Starting LiveKit Voice Agent...")
 
     # Create the agent server
-    worker = agents.WorkerOptions(
-        entrypoint_fnc=entrypoint,
-        prewarm_fnc=prewarm
-    )
+    worker = agents.WorkerOptions(entrypoint_fnc=entrypoint, prewarm_fnc=prewarm)
 
     # Run the agent
     agents.cli.run_app(worker)

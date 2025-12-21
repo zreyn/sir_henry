@@ -11,10 +11,15 @@ __pycache__/
 .Python
 
 # Virtual environments
-.venv
+.venv/
+**/.venv/
 venv/
 env/
 ENV/
+
+# Python version pinning (use container's Python)
+.python-version
+**/.python-version
 
 # Build artifacts
 build/
@@ -42,14 +47,12 @@ Thumbs.db
 *.md
 !README.md
 
-# Environment files
-.env
-.env.*
+# # Environment files
+# .env
+# .env.*
 
-# Model files (these should be mounted as volumes)
+# Large model files (optional - remove these lines to bake models into images)
 *.gguf
-*.safetensors
-agent/models/*
 
 # Output files
 **/last_output.wav

@@ -33,7 +33,6 @@ ENV PYTHONPATH=/app/src:$PYTHONPATH
 
 # Default environment variables
 ENV CHARACTER=sir_henry
-ENV TTS_DEVICE=""
 ENV STT_DEVICE=cpu
 
 # Run the livekit agent using the build-time virtualenv (skip uv bootstrapping)
