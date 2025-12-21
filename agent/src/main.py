@@ -22,18 +22,11 @@ from config import (
     REF_AUDIO_PATH,
     REF_TEXT,
     SPEED,
-    DEVICE,
+    TTS_HOST,
     STT_DEVICE,
     OLLAMA_HOST,
     OLLAMA_MODEL,
     OLLAMA_TEMPERATURE,
-    TTS_TYPE,
-    PIPER_MODEL_PATH,
-    PIPER_USE_CUDA,
-    PIPER_SPEED,
-    PIPER_VOLUME,
-    PIPER_NOISE_SCALE,
-    PIPER_NOISE_W,
 )
 
 
@@ -66,35 +59,17 @@ def prewarm(proc: JobProcess):
 
     logger.info("Prewarming models...")
 
-    # Load Silero VAD
     proc.userdata["vad"] = silero.VAD.load()
     logger.info("Silero VAD loaded.")
 
-    # Initialize F5-TTS (will lazy-load model on first use)
-    if TTS_TYPE == "piper":
-        if not PIPER_MODEL_PATH:
-            raise ValueError("Piper TTS selected but no model path provided.")
-        proc.userdata["tts"] = PiperTTS(
-            model_path=PIPER_MODEL_PATH,
-            use_cuda=PIPER_USE_CUDA,
-            speed=PIPER_SPEED,
-            volume=PIPER_VOLUME,
-            noise_scale=PIPER_NOISE_SCALE,
-            noise_w=PIPER_NOISE_W,
-        )
-        logger.info("Piper TTS initialized.")
-    else:
-        proc.userdata["tts"] = F5TTS(
-            ref_audio_path=REF_AUDIO_PATH,
-            ref_text=REF_TEXT,
-            speed=SPEED,
-            device=DEVICE,
-        )
-        # Force-load TTS weights now so first reply is fast
-        proc.userdata["tts"]._ensure_loaded()
-        logger.info("F5-TTS initialized and warmed.")
+    proc.userdata["tts"] = F5TTS(
+        ref_audio_path=REF_AUDIO_PATH,
+        ref_text=REF_TEXT,
+        speed=SPEED,
+        service_url=TTS_HOST,
+    )
+    logger.info("F5-TTS initialized.")
 
-    # Initialize Faster-Whisper STT
     proc.userdata["stt"] = FasterWhisperSTT(
         model_size="small",
         device=STT_DEVICE,
@@ -182,10 +157,7 @@ def main():
     logger.info("Starting LiveKit Voice Agent...")
 
     # Create the agent server
-    worker = agents.WorkerOptions(
-        entrypoint_fnc=entrypoint,
-        prewarm_fnc=prewarm
-    )
+    worker = agents.WorkerOptions(entrypoint_fnc=entrypoint, prewarm_fnc=prewarm)
 
     # Run the agent
     agents.cli.run_app(worker)

@@ -44,6 +44,30 @@ services:
         curl -X POST http://localhost:11434/api/generate -d '{"model": "llama3.2:3b", "prompt": "test", "keep_alive": -1}'
         echo "Init complete"
 
+  f5-tts-service:
+    build:
+      context: .
+      dockerfile: f5-tts-service/Dockerfile
+    container_name: f5-tts-service
+    restart: unless-stopped
+    ports:
+      - "11800:11800"
+    volumes:
+      # CRITICAL: Persist downloaded models so they don't re-download
+      - huggingface_cache:/root/.cache/huggingface
+      - ./f5-tts-service/ref:/app/ref:ro 
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11800/health"]
+      interval: 10s
+      start_period: 60s
+
   livekit-server:
     image: livekit/livekit-server:latest
     container_name: livekit-server
@@ -63,11 +87,12 @@ services:
     depends_on:
       ollama:
         condition: service_healthy
+      f5-tts-service:
+        condition: service_healthy
       livekit-server:
         condition: service_started
     environment:
       - CHARACTER=${CHARACTER:-sir_henry}
-      - TTS_DEVICE=${TTS_DEVICE:-}
       - STT_DEVICE=${STT_DEVICE:-cpu}
       - OLLAMA_HOST=localhost:11434
       - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2:3b}
@@ -100,4 +125,6 @@ volumes:
   ollama_data:
     driver: local
   webui_data:
+    driver: local
+  huggingface_cache:
     driver: local
