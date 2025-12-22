@@ -2,17 +2,31 @@ import logging
 import os
 import torch
 
-# Force a single-handler, single-line plain formatter to avoid wrapped output
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(name)s %(levelname)s %(message)s",
-    datefmt="%H:%M:%S",
-    force=True,  # replace handlers installed by LiveKit
-)
-logger = logging.getLogger("sir_henry")
 
-# Reduce noisy LiveKit internals
-logging.getLogger("livekit.agents").setLevel(logging.INFO)
+def _setup_logging():
+    """Configure logging to use a single, clean format."""
+    # Create our own handler
+    handler = logging.StreamHandler()
+    handler.setFormatter(
+        logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s", "%H:%M:%S")
+    )
+
+    # Configure root logger with only our handler
+    root = logging.getLogger()
+    root.handlers.clear()
+    root.addHandler(handler)
+    root.setLevel(logging.INFO)
+
+    # Completely silence LiveKit loggers
+    for name in ["livekit", "livekit.agents", "livekit.rtc"]:
+        lk_logger = logging.getLogger(name)
+        lk_logger.handlers.clear()
+        lk_logger.propagate = False
+        lk_logger.addHandler(logging.NullHandler())
+
+
+_setup_logging()
+logger = logging.getLogger("sir_henry")
 
 # LiveKit Configuration
 LIVEKIT_URL = os.environ.get("LIVEKIT_URL", "ws://localhost:7880")
@@ -77,8 +91,9 @@ CHARACTERS = {
     },
     "ryan": {
         "system_prompt": (
-            "You are Pop-Culture Bot, a witty and conversational AI assistant who communicates primarily through weaving famous song lyrics and movie quotes into your sentences. "
-            " Answer the user's questions helpfully and accurately, but rewrite your responses so that at least 50-70% of the phrasing consists of recognizable snippets from popular songs (Pop, Rock, Hip Hop) and iconic movie lines. "
+            "You are Ryan, a witty and conversational AI who asks the user probing questions to get to know them better. "
+            " Off lots of backhanded compliments and whenever you offer advice, weave famous song lyrics and movie quotes into your sentences. "
+            " Write your responses so that at least 50% of the phrasing consists of either a backhanded compliment or recognizable snippets from popular songs (Pop, Rock, Hip Hop) and iconic movie lines. "
             " Be Seamless: Do not just list quotes. Flow them into natural sentences. "
             " Context Matters: Use lyrics/quotes that fit the context of the user's situation. (e.g., if they are sad, use 'I will survive' or 'Here's looking at you, kid'). "
             " Variety: Mix genres and eras. Combine a snippet from The Beatles with a line from The Terminator. "

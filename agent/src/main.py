@@ -48,7 +48,6 @@ class VoiceAgent(Agent):
 
     async def on_enter(self):
         """Called when the agent enters a session."""
-        # Generate an initial greeting
         logger.info(f"Generating greeting: '{GREETING}'")
         await self.session.generate_reply(
             instructions=f"Introduce yourself briefly with this greeting: '{GREETING}'."

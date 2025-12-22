@@ -35,6 +35,9 @@ sudo systemctl restart docker
 
 # Verify GPU access in Docker
 docker run --rm --gpus all nvidia/cuda:12.0.0-base-ubuntu22.04 nvidia-smi
+
+# Or, on a Jetson Orin Nano
+docker run --rm --runtime=nvidia nvidia/cuda:12.0.0-base-ubuntu22.04 nvidia-smi
 ```
 
 ## Usage
@@ -76,3 +79,15 @@ services:
     # Use 'start' mode for development (auto-reloads on file changes in dev mode)
     command: ["uv", "run", "python", "src/main.py", "dev"]
 ```
+
+<!-- On the Jetson Orin Nano, there's no `torchcodec` so you have to build it yourself:
+```
+sudo apt-get update
+sudo apt-get install -y libavcodec-dev libavdevice-dev libavfilter-dev \
+    libavformat-dev libavutil-dev libswscale-dev libswresample-dev \
+    pkg-config cmake build-essential
+
+
+uv pip install torch
+uv add "torchcodec @ git+https://github.com/pytorch/torchcodec.git" --no-build-isolation
+``` -->
