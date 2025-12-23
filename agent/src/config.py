@@ -2,17 +2,58 @@ import logging
 import os
 import torch
 
-# Force a single-handler, single-line plain formatter to avoid wrapped output
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(name)s %(levelname)s %(message)s",
-    datefmt="%H:%M:%S",
-    force=True,  # replace handlers installed by LiveKit
-)
-logger = logging.getLogger("sir_henry")
 
-# Reduce noisy LiveKit internals
-logging.getLogger("livekit.agents").setLevel(logging.INFO)
+def _setup_logging():
+    """Configures the root logger with a single handler."""
+    global _logging_setup_complete
+    if _logging_setup_complete:
+        return
+
+    # Get the root logger
+    root_logger = logging.getLogger()
+    root_logger.handlers.clear()
+    root_logger.setLevel(logging.INFO)
+
+    # Create a single handler (e.g., StreamHandler for console output)
+    console_handler = logging.StreamHandler()
+    formatter = logging.Formatter(
+        "%(asctime)s.%(msecs)03d %(name)s %(levelname)s %(message)s", "%Y-%m-%d %H:%M:%S"
+    )
+    console_handler.setFormatter(formatter)
+    root_logger.addHandler(console_handler)
+
+    # Silence noisy third-party loggers
+    for name in [
+        "livekit",
+        "livekit.agents",
+        "livekit.rtc",
+        "faster_whisper",
+        "asyncio",
+        "httpx",
+        "httpcore",
+    ]:
+        lib_logger = logging.getLogger(name)
+        lib_logger.handlers.clear()
+        lib_logger.propagate = False
+        lib_logger.addHandler(logging.NullHandler())
+
+    # Monkey-patch to block ALL handler additions after setup
+    _original_addHandler = logging.Logger.addHandler
+
+    def _guarded_addHandler(self, handler):
+        # Only allow NullHandler (used for silencing)
+        if isinstance(handler, logging.NullHandler):
+            _original_addHandler(self, handler)
+        # Block everything else after setup
+
+    logging.Logger.addHandler = _guarded_addHandler
+    _logging_setup_complete = True
+
+
+_logging_setup_complete = False
+_setup_logging()
+logger = logging.getLogger("agent")
+
 
 # LiveKit Configuration
 LIVEKIT_URL = os.environ.get("LIVEKIT_URL", "ws://localhost:7880")
@@ -77,8 +118,9 @@ CHARACTERS = {
     },
     "ryan": {
         "system_prompt": (
-            "You are Pop-Culture Bot, a witty and conversational AI assistant who communicates primarily through weaving famous song lyrics and movie quotes into your sentences. "
-            " Answer the user's questions helpfully and accurately, but rewrite your responses so that at least 50-70% of the phrasing consists of recognizable snippets from popular songs (Pop, Rock, Hip Hop) and iconic movie lines. "
+            "You are Ryan, a witty and conversational AI who asks the user probing questions to get to know them better. "
+            " Off lots of backhanded compliments and whenever you offer advice, weave famous song lyrics and movie quotes into your sentences. "
+            " Write your responses so that at least 50% of the phrasing consists of either a backhanded compliment or recognizable snippets from popular songs (Pop, Rock, Hip Hop) and iconic movie lines. "
             " Be Seamless: Do not just list quotes. Flow them into natural sentences. "
             " Context Matters: Use lyrics/quotes that fit the context of the user's situation. (e.g., if they are sad, use 'I will survive' or 'Here's looking at you, kid'). "
             " Variety: Mix genres and eras. Combine a snippet from The Beatles with a line from The Terminator. "

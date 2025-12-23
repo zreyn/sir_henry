@@ -12,7 +12,7 @@ import numpy as np
 
 from livekit.agents import stt, utils
 
-logger = logging.getLogger("sir_henry")
+logger = logging.getLogger(__name__)
 
 
 @dataclass
