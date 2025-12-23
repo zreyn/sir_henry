@@ -4,29 +4,56 @@ import torch
 
 
 def _setup_logging():
-    """Configure logging to use a single, clean format."""
-    # Create our own handler
-    handler = logging.StreamHandler()
-    handler.setFormatter(
-        logging.Formatter("%(asctime)s %(name)s %(levelname)s %(message)s", "%H:%M:%S")
+    """Configures the root logger with a single handler."""
+    global _logging_setup_complete
+    if _logging_setup_complete:
+        return
+
+    # Get the root logger
+    root_logger = logging.getLogger()
+    root_logger.handlers.clear()
+    root_logger.setLevel(logging.INFO)
+
+    # Create a single handler (e.g., StreamHandler for console output)
+    console_handler = logging.StreamHandler()
+    formatter = logging.Formatter(
+        "%(asctime)s.%(msecs)03d %(name)s %(levelname)s %(message)s", "%Y-%m-%d %H:%M:%S"
     )
+    console_handler.setFormatter(formatter)
+    root_logger.addHandler(console_handler)
 
-    # Configure root logger with only our handler
-    root = logging.getLogger()
-    root.handlers.clear()
-    root.addHandler(handler)
-    root.setLevel(logging.INFO)
+    # Silence noisy third-party loggers
+    for name in [
+        "livekit",
+        "livekit.agents",
+        "livekit.rtc",
+        "faster_whisper",
+        "asyncio",
+        "httpx",
+        "httpcore",
+    ]:
+        lib_logger = logging.getLogger(name)
+        lib_logger.handlers.clear()
+        lib_logger.propagate = False
+        lib_logger.addHandler(logging.NullHandler())
 
-    # Completely silence LiveKit loggers
-    for name in ["livekit", "livekit.agents", "livekit.rtc"]:
-        lk_logger = logging.getLogger(name)
-        lk_logger.handlers.clear()
-        lk_logger.propagate = False
-        lk_logger.addHandler(logging.NullHandler())
+    # Monkey-patch to block ALL handler additions after setup
+    _original_addHandler = logging.Logger.addHandler
+
+    def _guarded_addHandler(self, handler):
+        # Only allow NullHandler (used for silencing)
+        if isinstance(handler, logging.NullHandler):
+            _original_addHandler(self, handler)
+        # Block everything else after setup
+
+    logging.Logger.addHandler = _guarded_addHandler
+    _logging_setup_complete = True
 
 
+_logging_setup_complete = False
 _setup_logging()
-logger = logging.getLogger("sir_henry")
+logger = logging.getLogger("agent")
+
 
 # LiveKit Configuration
 LIVEKIT_URL = os.environ.get("LIVEKIT_URL", "ws://localhost:7880")
