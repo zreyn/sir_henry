@@ -50,26 +50,30 @@ class VoiceAgent(Agent):
     def __init__(self):
         super().__init__(instructions=SYSTEM_PROMPT)
         all_stalls = os.listdir("./ref/")
-        self.stalls = [f for f in all_stalls if f.contains(SELECTED_CHARACTER)]
+        self.stalls = [f for f in all_stalls if SELECTED_CHARACTER in f]
+        logger.info(f"Stalls found: {self.stalls}")
 
     async def on_enter(self):
-        """Called when the agent enters a session."""
+        self.session.on("user_input_transcribed")(self._on_user_input_transcribed)
         logger.info(f"Speaking greeting: '{GREETING}'")
         await self.session.say(GREETING)
-        logger.info("Greeting complete")
 
-    def on_user_input_transcribed(self, ev):
-        if len(ev.transcript) > 10:
-            asyncio.create_task(self.play_stall_phrase())
+    def _on_user_input_transcribed(self, ev):
+        """Called when user speech is transcribed."""
+        transcript = getattr(ev, "transcript", "")
+        logger.info(f"User said: {transcript[:50]}...")
+        asyncio.create_task(self.play_stall_phrase())
 
     async def play_stall_phrase(self):
-        stall = random.choice(self.stalls)
-        await self.session.say(
-            text=stall.removeprefix(f"stall_{SELECTED_CHARACTER}_").removesuffix(
-                ".wav"
-            ),
-            audio=read_wav_file(stall),
-        )
+        if len(self.stalls) > 0:
+            stall = random.choice(self.stalls)
+            logger.info(f"Playing stall: {stall}")
+            await self.session.say(
+                text=stall.removeprefix(f"stall_{SELECTED_CHARACTER}_").removesuffix(
+                    ".wav"
+                ),
+                audio=read_wav_file(stall),
+            )
 
 
 def prewarm(proc: JobProcess):

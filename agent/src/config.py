@@ -23,11 +23,10 @@ def _setup_logging():
     console_handler.setFormatter(formatter)
     root_logger.addHandler(console_handler)
 
-    # Silence noisy third-party loggers
     for name in [
-        "livekit",
-        "livekit.agents",
-        "livekit.rtc",
+        # "livekit",
+        # "livekit.agents",
+        # "livekit.rtc",
         "faster_whisper",
         "asyncio",
         "httpx",
