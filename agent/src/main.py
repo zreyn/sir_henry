@@ -4,18 +4,22 @@ Sir Henry - LiveKit Voice Agent
 A voice AI agent using LiveKit Agents framework with custom F5-TTS and Faster-Whisper plugins.
 """
 
-import logging
+import asyncio
 import time
+import os
+import random
+import wave
 
 from dotenv import load_dotenv
 
-from livekit import agents
+from livekit import agents, rtc
 from livekit.agents import AgentSession, Agent, JobContext, JobProcess
 from livekit.plugins import openai as lk_openai
 from livekit.plugins import silero
 
 from config import (
     logger,
+    SELECTED_CHARACTER,
     SYSTEM_PROMPT,
     GREETING,
     REF_AUDIO_PATH,
@@ -45,12 +49,27 @@ class VoiceAgent(Agent):
 
     def __init__(self):
         super().__init__(instructions=SYSTEM_PROMPT)
+        all_stalls = os.listdir("./ref/")
+        self.stalls = [f for f in all_stalls if f.contains(SELECTED_CHARACTER)]
 
     async def on_enter(self):
         """Called when the agent enters a session."""
         logger.info(f"Speaking greeting: '{GREETING}'")
         await self.session.say(GREETING)
         logger.info("Greeting complete")
+
+    def on_user_input_transcribed(self, ev):
+        if len(ev.transcript) > 10:
+            asyncio.create_task(self.play_stall_phrase())
+
+    async def play_stall_phrase(self):
+        stall = random.choice(self.stalls)
+        await self.session.say(
+            text=stall.removeprefix(f"stall_{SELECTED_CHARACTER}_").removesuffix(
+                ".wav"
+            ),
+            audio=read_wav_file(stall),
+        )
 
 
 def prewarm(proc: JobProcess):
@@ -166,6 +185,33 @@ async def entrypoint(ctx: JobContext):
     )
 
     logger.info("Agent session started.")
+
+
+async def read_wav_file(path: str):
+    """
+    Reads a WAV file and yields AudioFrames for LiveKit playback.
+    """
+    with wave.open(path, "rb") as wf:
+        # Validate format (LiveKit expects 16-bit PCM usually, but can handle others)
+        if wf.getnchannels() != 1 or wf.getsampwidth() != 2:
+            raise ValueError("WAV must be mono and 16-bit PCM")
+
+        sample_rate = wf.getframerate()
+        samples_per_frame = int(sample_rate * 0.02)  # 20ms chunks (standard for WebRTC)
+
+        while True:
+            data = wf.readframes(samples_per_frame)
+            if not data:
+                break
+
+            # Create a LiveKit AudioFrame
+            frame = rtc.AudioFrame(
+                data=data,
+                sample_rate=sample_rate,
+                num_channels=1,
+                samples_per_channel=len(data) // 2,  # 16-bit = 2 bytes per sample
+            )
+            yield frame
 
 
 def main():

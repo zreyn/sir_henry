@@ -17,7 +17,8 @@ def _setup_logging():
     # Create a single handler (e.g., StreamHandler for console output)
     console_handler = logging.StreamHandler()
     formatter = logging.Formatter(
-        "%(asctime)s.%(msecs)03d %(name)s %(levelname)s %(message)s", "%Y-%m-%d %H:%M:%S"
+        "%(asctime)s.%(msecs)03d %(name)s %(levelname)s %(message)s",
+        "%Y-%m-%d %H:%M:%S",
     )
     console_handler.setFormatter(formatter)
     root_logger.addHandler(console_handler)

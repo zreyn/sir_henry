@@ -6,12 +6,19 @@ Test the F5-TTS service with different characters and measure latency.
 """
 
 import asyncio
+import os
+import re
 import time
+import wave
 import numpy as np
 
 import aiohttp
 
 from src.config import CHARACTERS, TTS_HOST
+
+# Audio constants
+INPUT_SAMPLE_RATE = 24000  # F5-TTS output rate
+OUTPUT_SAMPLE_RATE = 48000  # Target WAV rate
 
 
 def get_f5_characters() -> dict:
@@ -36,7 +43,7 @@ def select_character() -> tuple[str, dict]:
     for i, (name, config) in enumerate(char_list, 1):
         greeting = config.get("greeting", "")[:50]
         print(f"  {i}. {name}")
-        print(f"     \"{greeting}...\"")
+        print(f'     "{greeting}..."')
         print()
 
     while True:
@@ -104,6 +111,76 @@ def play_audio(audio_bytes: bytes, sample_rate: int = 24000):
         print("  Install with: pip install sounddevice")
 
 
+def resample_audio(audio: np.ndarray, input_rate: int, output_rate: int) -> np.ndarray:
+    """Resample audio from input_rate to output_rate using linear interpolation."""
+    if input_rate == output_rate:
+        return audio
+
+    # Calculate the resampling ratio
+    ratio = output_rate / input_rate
+    output_length = int(len(audio) * ratio)
+
+    # Use numpy interpolation for resampling
+    x_old = np.linspace(0, 1, len(audio))
+    x_new = np.linspace(0, 1, output_length)
+    resampled = np.interp(x_new, x_old, audio.astype(np.float64))
+
+    return resampled.astype(audio.dtype)
+
+
+def sanitize_filename(text: str, max_length: int = 50) -> str:
+    """Sanitize text for use in a filename."""
+    # Remove or replace invalid characters
+    sanitized = re.sub(r'[<>:"/\\|?*.]', "", text)
+    # Replace spaces and other whitespace with underscores
+    sanitized = re.sub(r"\s+", "_", sanitized)
+    # Remove any non-ASCII characters
+    sanitized = sanitized.encode("ascii", "ignore").decode()
+    # Truncate to max length
+    if len(sanitized) > max_length:
+        sanitized = sanitized[:max_length]
+    # Remove trailing underscores
+    sanitized = sanitized.rstrip("_")
+    return sanitized
+
+
+def save_audio_to_wav(
+    audio_bytes: bytes,
+    character_name: str,
+    text: str,
+    input_sample_rate: int = INPUT_SAMPLE_RATE,
+    output_sample_rate: int = OUTPUT_SAMPLE_RATE,
+) -> str:
+    """
+    Save audio to a WAV file at the specified sample rate.
+
+    Returns the filename that was saved.
+    """
+    # Convert bytes to numpy array (int16 PCM)
+    audio = np.frombuffer(audio_bytes, dtype=np.int16)
+
+    # Resample to output rate
+    if input_sample_rate != output_sample_rate:
+        audio = resample_audio(audio, input_sample_rate, output_sample_rate)
+
+    # Generate filename in output directory
+    sanitized_text = sanitize_filename(text)
+    output_dir = "output"
+    filename = f"{output_dir}/stall_{character_name}_{sanitized_text}.wav"
+
+    # Ensure directory exists
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Write WAV file
+    with wave.open(filename, "wb") as wav_file:
+        wav_file.setnchannels(1)  # Mono
+        wav_file.setsampwidth(2)  # 16-bit
+        wav_file.setframerate(output_sample_rate)
+        wav_file.writeframes(audio.astype(np.int16).tobytes())
+
+    return filename
+
+
 async def interactive_loop(char_name: str, char_config: dict, service_url: str):
     """Main interactive loop for TTS testing."""
     ref_audio_path = char_config.get("ref_audio_path", "")
@@ -141,7 +218,7 @@ async def interactive_loop(char_name: str, char_config: dict, service_url: str):
                         service_url=service_url,
                     )
 
-                    audio_duration_ms = len(audio_bytes) / 2 / 24000 * 1000  # int16 = 2 bytes
+                    audio_duration_ms = len(audio_bytes) / 2 / INPUT_SAMPLE_RATE * 1000
                     rtf = latency_ms / audio_duration_ms if audio_duration_ms > 0 else 0
 
                     print(f"  ✓ Latency: {latency_ms:.0f}ms")
@@ -149,7 +226,13 @@ async def interactive_loop(char_name: str, char_config: dict, service_url: str):
                     print(f"  ✓ Real-time factor: {rtf:.2f}x")
                     print("  Playing audio...")
 
-                    play_audio(audio_bytes)
+                    play_audio(audio_bytes, INPUT_SAMPLE_RATE)
+
+                    # Prompt to save
+                    save_choice = input("  Save to WAV? (y/N): ").strip().lower()
+                    if save_choice in ("y", "yes"):
+                        filename = save_audio_to_wav(audio_bytes, char_name, text)
+                        print(f"  ✓ Saved to: {filename}")
                     print()
 
                 except Exception as e:
