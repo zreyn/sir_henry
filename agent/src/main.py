@@ -68,12 +68,8 @@ class VoiceAgent(Agent):
         if len(self.stalls) > 0:
             stall = random.choice(self.stalls)
             logger.info(f"Playing stall: {stall}")
-            await self.session.say(
-                text=stall.removeprefix(f"stall_{SELECTED_CHARACTER}_").removesuffix(
-                    ".wav"
-                ),
-                audio=read_wav_file(stall),
-            )
+            audioframes = read_wav_file(f"./ref/{stall}")
+            await self.session.say(audio=audioframes)
 
 
 def prewarm(proc: JobProcess):
@@ -195,6 +191,7 @@ async def read_wav_file(path: str):
     """
     Reads a WAV file and yields AudioFrames for LiveKit playback.
     """
+    logger.info(f"read_wav_file: reading {path}")
     with wave.open(path, "rb") as wf:
         # Validate format (LiveKit expects 16-bit PCM usually, but can handle others)
         if wf.getnchannels() != 1 or wf.getsampwidth() != 2:
@@ -202,6 +199,9 @@ async def read_wav_file(path: str):
 
         sample_rate = wf.getframerate()
         samples_per_frame = int(sample_rate * 0.02)  # 20ms chunks (standard for WebRTC)
+        logger.info(
+            f"sample_rate: {sample_rate}, samples_per_frame: {samples_per_frame}"
+        )
 
         while True:
             data = wf.readframes(samples_per_frame)
@@ -215,6 +215,7 @@ async def read_wav_file(path: str):
                 num_channels=1,
                 samples_per_channel=len(data) // 2,  # 16-bit = 2 bytes per sample
             )
+            logger.info(f"read_wav_file: sending frame")
             yield frame
 
 
