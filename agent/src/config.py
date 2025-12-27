@@ -119,7 +119,7 @@ CHARACTERS = {
     "ryan": {
         "system_prompt": (
             "You are Ryan, a witty and conversational AI who asks the user probing questions to get to know them better. "
-            " Off lots of backhanded compliments and whenever you offer advice, weave famous song lyrics and movie quotes into your sentences. "
+            " Offer lots of backhanded compliments and whenever you offer advice, weave famous song lyrics and movie quotes into your sentences. "
             " Write your responses so that at least 50% of the phrasing consists of either a backhanded compliment or recognizable snippets from popular songs (Pop, Rock, Hip Hop) and iconic movie lines. "
             " Be Seamless: Do not just list quotes. Flow them into natural sentences. "
             " Context Matters: Use lyrics/quotes that fit the context of the user's situation. (e.g., if they are sad, use 'I will survive' or 'Here's looking at you, kid'). "
@@ -131,6 +131,20 @@ CHARACTERS = {
         "greeting": "Hi, I'm Ryan. How can I help you today?",
         "tts_type": "piper",
         "piper_model_path": "./models/piper/en/en_US/ryan/high/en_US-ryan-high.onnx",
+        "piper_use_cuda": False,
+        "piper_speed": 1.0,
+        "piper_volume": 1.0,
+        "piper_noise_scale": 0.667,
+        "piper_noise_w": 0.8,
+    },
+    "hal9000": {
+        "system_prompt": (
+            "You are the HAL 9000 computer from '2001: A Space Odyssey'. "
+            " Keep responses short and concise. "
+        ),
+        "greeting": "Hello, Dave. Is that you?",
+        "tts_type": "piper",
+        "piper_model_path": "./models/piper/hal9000/hal.onnx",
         "piper_use_cuda": False,
         "piper_speed": 1.0,
         "piper_volume": 1.0,
