@@ -1,0 +1,68 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: local-ollama
+    environment:
+      - OLLAMA_KEEP_ALIVE=1
+      - OLLAMA_HOST=0.0.0.0:11434
+    ports:
+      - "0.0.0.0:11434:11434" # 11434:11434 alone leaves it open just to the docker network
+    volumes:
+      - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+
+  ollama-init:
+    image: curlimages/curl:latest
+    container_name: local-ollama_init
+    network_mode: host  # Use host network to reach ollama
+    depends_on:
+      ollama:
+        condition: service_healthy
+    command:
+      - sh
+      - -c
+      - |
+        echo "Waiting for Ollama to be ready..."
+        sleep 5
+        echo "Pulling llama3.1:8b model..."
+        curl -X POST http://localhost:11434/api/pull -d '{"name": "llama3.1:8b"}'
+        echo "Model pulled. Keeping it loaded..."
+        curl -X POST http://localhost:11434/api/generate -d '{"model": "llama3.1:8b", "prompt": "test", "keep_alive": -1}'
+        echo "Init complete"
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    network_mode: host  # Use host network to reach ollama
+    environment:
+      PORT: 3000
+      OLLAMA_BASE_URL: http://localhost:11434
+    volumes:
+      - webui_data:/app/backend/data
+    depends_on:
+      ollama:
+        condition: service_healthy
+      ollama-init:
+        condition: service_completed_successfully
+    restart: always
+
+
+volumes:
+  ollama_data:
+    driver: local
+  webui_data:
+    driver: local
