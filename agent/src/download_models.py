@@ -106,6 +106,34 @@ def download_piper_model(model_name: str = "en_US-ryan-high") -> Path:
     return piper_dir
 
 
+def download_hal9000_piper_model() -> Path:
+    """Download HAL 9000 Piper TTS voice model from HuggingFace."""
+    from huggingface_hub import hf_hub_download
+
+    print("Downloading HAL 9000 Piper voice model...")
+
+    piper_dir = MODELS_DIR / "piper" / "hal9000"
+    piper_dir.mkdir(parents=True, exist_ok=True)
+
+    # Download model and config files
+    onnx_file = hf_hub_download(
+        repo_id="campwill/HAL-9000-Piper-TTS",
+        filename=f"hal.onnx",
+        local_dir=str(piper_dir),
+        local_dir_use_symlinks=False,
+    )
+
+    config_file = hf_hub_download(
+        repo_id="campwill/HAL-9000-Piper-TTS",
+        filename=f"hal.onnx.json",
+        local_dir=str(piper_dir),
+        local_dir_use_symlinks=False,
+    )
+
+    print(f"  Downloaded to: {piper_dir}")
+    return piper_dir
+
+
 def main():
     """Download all models."""
     print("=" * 60)
@@ -125,6 +153,9 @@ def main():
     print()
 
     download_piper_model("en_US-ryan-high")
+    print()
+
+    download_hal9000_piper_model()
     print()
 
     print("=" * 60)
