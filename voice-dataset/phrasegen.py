@@ -2,7 +2,6 @@ import os
 import requests
 from dotenv import load_dotenv
 import logging
-import time
 
 logging.basicConfig(
     level=logging.INFO,
@@ -54,11 +53,16 @@ def save_phrases(phrases, phrase_file_name):
             f.write(phrase + "\n")
 
 
-def delete_phrase_file(phrase_file_name):
+def empty_phrase_file(phrase_file_name):
     if os.path.exists(phrase_file_name):
         os.remove(phrase_file_name)
-        return True
-    return False
+
+    directory = os.path.dirname(phrase_file_name)
+    if directory and not os.path.exists(directory):
+        os.makedirs(directory, exist_ok=True)
+
+    with open(phrase_file_name, "a") as f:
+        pass
 
 
 def main():
@@ -67,18 +71,16 @@ def main():
     messages = setup_ollama()
 
     phrase_file_name = "raw/phrases.txt"
-    deleted = delete_phrase_file(phrase_file_name)
-    if deleted:
-        logger.info(f"Old phrase file '{phrase_file_name}' has been deleted.")
+    empty_phrase_file(phrase_file_name)
 
     number_of_phrases_per_topic = 70
     topics = [
-        'Pirate speak: treasure, the sea, ship life, fighting, drinking, and insults.',
-        'Folklore & Mythology: mythical creatures, ancient legends, and supernatural phenomena.',
-        'Puns and Wordplay, Irony and Sarcasm, Hyperbole and Understatement,Juxtaposition and Incongruity',
-        'Allusion and Pop Culture References',
-        'Sci-Fi & Space Exploration: Narrative sentences about starships, distant planets, and futuristic concepts.',
-        'Children\'s Stories: Soft, slower, and explanatory tone.',
+        "Pirate speak: treasure, the sea, ship life, fighting, drinking, and insults.",
+        "Folklore & Mythology: mythical creatures, ancient legends, and supernatural phenomena.",
+        "Puns and Wordplay, Irony and Sarcasm, Hyperbole and Understatement,Juxtaposition and Incongruity",
+        "Allusion and Pop Culture References",
+        "Sci-Fi & Space Exploration: Narrative sentences about starships, distant planets, and futuristic concepts.",
+        "Children's Stories: Soft, slower, and explanatory tone.",
         'Argumentative/Debate: Persuasive text that uses "I believe," "However," and "Therefore" to capture firm intonation.',
         'Casual Texting/Slang: Short, punchy sentences with contractions ("I\'m gonna head out," "What\'s up?").',
         'The "Harvard Sentences" (Phonetic Balance): As mentioned before, standard phonetically balanced sentences to catch any missing sounds (e.g., "The small pup gnawed a hole in the sock").',
@@ -88,6 +90,8 @@ def main():
         f"Generating {len(topics)} topics with phrases per topic {number_of_phrases_per_topic} [{number_of_phrases_per_topic * len(topics)} total phrases]"
     )
 
+    phrases = []
+
     for topic in topics:
         logger.info(f"Generating phrases for topic: {topic}")
         total_phrases = 0
@@ -96,11 +100,11 @@ def main():
         Generate {number_of_phrases_per_topic} unique sentences for a TTS training dataset. The sentences must strictly follow these constraints to ensure high-quality model alignment:
         1. Phonetic Diversity: Include a mix of sibilants (s, sh, z), plosives (p, b, t, d), and nasals. Use complex words occasionally.
         2. Structural Variety:
-        {number_of_phrases_per_topic/5} sentences should be questions (Who, What, Where, Why, How).
-        {number_of_phrases_per_topic/5} sentences should be short exclamations or commands.
-        {number_of_phrases_per_topic/5} sentences should be long, complex compound sentences with multiple clauses.
-        {number_of_phrases_per_topic/5} sentences must contain numbers, dates, or currency (written out as they should be spoken, e.g., "twenty-twenty five").
-        {number_of_phrases_per_topic/5} sentences should be conversational/dialogue (using "I", "You", contractions).
+        14 sentences should be questions (Who, What, Where, Why, How).
+        14 sentences should be short exclamations or commands.
+        14 sentences should be long, complex compound sentences with multiple clauses.
+        14 sentences must contain numbers, dates, or currency (written out as they should be spoken, e.g., "twenty-twenty five").
+        14 sentences should be conversational/dialogue (using "I", "You", contractions).
         3. Punctuation: Use commas, colons, semi-colons, and ellipses (...) to force the TTS to learn pausing logic.
         4. Topic: Focus this batch on: {topic}.
         Output Format:
@@ -119,14 +123,15 @@ def main():
 
             messages.append({"role": "assistant", "content": reply})
 
-            new_phrases = len(reply.split('\n'))
+            new_phrases = len(reply.split("\n"))
             total_phrases += new_phrases
             logger.info(f"Model responded with {new_phrases} phrases")
+            phrases.extend(reply.split("\n"))
 
-            logger.info(f"Saving phrases")
-            save_phrases(reply.split("\n"), phrase_file_name)
+    unique_phrases = list(set(phrases))
 
-
+    logger.info(f"Saving {len(unique_phrases)} unique phrases...")
+    save_phrases(unique_phrases, phrase_file_name)
 
 
 if __name__ == "__main__":
