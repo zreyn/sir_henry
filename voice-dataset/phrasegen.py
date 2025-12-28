@@ -70,7 +70,7 @@ def main():
     logger.info("Setting up Ollama...")
     messages = setup_ollama()
 
-    phrase_file_name = "raw/phrases.txt"
+    phrase_file_name = "sir_henry/phrases.txt"
     empty_phrase_file(phrase_file_name)
 
     number_of_phrases_per_topic = 70
