@@ -1,0 +1,17 @@
+topics_for_me = [
+    'Software Architecture & Cloud: Focus on terms like "latency," "scalability," "AWS," "containers," and "API endpoints."',
+    "Autonomous Systems & AI: Sentences about Lidar, computer vision, neural networks, inference time, and sensor fusion.",
+    "Controlled Environment Agriculture (CEA): Discuss hydroponics, light spectrums, nutrient delivery systems, and vertical farming unit economics.",
+    'Epidemiology & Bio-Modeling: Use medical and biological terminology (e.g., "viral vectors," "transmission rates," "molecular function") to capture complex Latin-root pronunciations.',
+    'Defense & Security: High-stakes, formal language involving "protocols," "compliance," "threat detection," and "logistics."',
+    'Applied Math & Physics: Sentences involving precise measurements, formulas read aloud, and physics concepts (e.g., "velocity," "trajectory").',
+    'Fitness & CrossFit: Instructional sentences ("Keep your back straight," "3 sets of 10"), counting reps, and discussing intensity/heart rate.',
+    "Sci-Fi & Space Exploration: Narrative sentences about starships, distant planets, and futuristic concepts (helps with imagination and wonder in the voice).",
+    "Home Improvement & Construction: Discussing blueprints, materials (wood, concrete), and measurements (feet, inches).",
+    'Aviation & Travel: Announcements, geography, time zones, and logistics (good for "announcer" voice).',
+    'Children\'s Stories: Soft, slower, and explanatory tone (crucial for breaking up the "manager" cadence).',
+    'Argumentative/Debate: Persuasive text that uses "I believe," "However," and "Therefore" to capture firm intonation.',
+    'Casual Texting/Slang: Short, punchy sentences with contractions ("I\'m gonna head out," "What\'s up?").',
+    'Customer Service/Instructional: "Please press the red button," "Verify your email address" (teaches clarity and politeness).',
+    'The "Harvard Sentences" (Phonetic Balance): As mentioned before, standard phonetically balanced sentences to catch any missing sounds (e.g., "The small pup gnawed a hole in the sock").',
+]

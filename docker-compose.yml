@@ -50,6 +50,8 @@ services:
       dockerfile: f5-tts-service/Dockerfile
     container_name: f5-tts-service
     restart: unless-stopped
+    environment:
+      - CHARACTER=${CHARACTER:-sir_henry}
     ports:
       - "11800:11800"
     volumes:

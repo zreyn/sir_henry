@@ -31,13 +31,22 @@ def download_f5_tts_model() -> Path:
     f5_dir = MODELS_DIR / "f5-tts"
     f5_dir.mkdir(parents=True, exist_ok=True)
 
-    # Download model checkpoint
+    # Download base voice model checkpoint
     ckpt_file = hf_hub_download(
         repo_id="SWivid/F5-TTS",
         filename="F5TTS_v1_Base/model_1250000.safetensors",
         local_dir=str(f5_dir),
         local_dir_use_symlinks=False,
     )
+
+    # F5-TTS model checkpoint is managed by Git LFS.
+    # This script assumes the file is already present.
+    ckpt_file = f5_dir / "F5TTS_v1_Base" / "model_88500.safetensors"
+    if not ckpt_file.is_file():
+        raise RuntimeError(
+            f"Model checkpoint not found: {ckpt_file}. "
+            "Please make sure Git LFS is installed and the file is checked out."
+        )
 
     # Download vocab file
     vocab_file = hf_hub_download(
