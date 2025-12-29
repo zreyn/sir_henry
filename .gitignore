@@ -181,5 +181,10 @@ cython_debug/
 
 # model files
 *.gguf
-*.safetensors
-**/models/*
+agent/models/*
+f5-tts-service/models/*
+!f5-tts-service/models/f5-tts/
+f5-tts-service/models/f5-tts/*
+!f5-tts-service/models/f5-tts/F5TTS_v1_Base/
+f5-tts-service/models/f5-tts/F5TTS_v1_Base/*
+!f5-tts-service/models/f5-tts/F5TTS_v1_Base/model_88500.safetensors

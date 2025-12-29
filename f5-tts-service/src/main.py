@@ -32,7 +32,7 @@ class HealthCheckFilter(logging.Filter):
 logging.getLogger("uvicorn.access").addFilter(HealthCheckFilter())
 
 # Model paths (pre-downloaded, no network access needed)
-F5_MODEL_PATH = "./models/f5-tts/F5TTS_v1_Base/model_1250000.safetensors"
+F5_MODEL_PATH = "./models/f5-tts/F5TTS_v1_Base/model_88500.safetensors"
 F5_VOCAB_PATH = "./models/f5-tts/F5TTS_v1_Base/vocab.txt"
 VOCOS_PATH = "./models/vocos-mel-24khz"
 
