@@ -8,6 +8,7 @@ import torch
 import numpy as np
 import logging
 import time
+import os
 
 from f5_tts.model import DiT
 from f5_tts.infer.utils_infer import (
@@ -32,7 +33,16 @@ class HealthCheckFilter(logging.Filter):
 logging.getLogger("uvicorn.access").addFilter(HealthCheckFilter())
 
 # Model paths (pre-downloaded, no network access needed)
-F5_MODEL_PATH = "./models/f5-tts/F5TTS_v1_Base/model_88500.safetensors"
+F5_MODEL_PATH_SIRHENRY = "./models/f5-tts/F5TTS_v1_Base/model_88500.safetensors"
+F5_MODEL_PATH_GENERIC = "./models/f5-tts/F5TTS_v1_Base/model_1250000.safetensors"
+
+# Select model based on CHARACTER env var. Makes it easy to add more.
+CHARACTER_MODELS = {
+    "sir_henry": F5_MODEL_PATH_SIRHENRY,
+    # Add other character-specific models here
+}
+CHARACTER = os.environ.get("CHARACTER")
+F5_MODEL_PATH = CHARACTER_MODELS.get(CHARACTER, F5_MODEL_PATH_GENERIC)
 F5_VOCAB_PATH = "./models/f5-tts/F5TTS_v1_Base/vocab.txt"
 VOCOS_PATH = "./models/vocos-mel-24khz"
 
