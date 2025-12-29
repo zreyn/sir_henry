@@ -10,13 +10,14 @@ uv run python phrasegen.py
 
 2. Get audio to go with the phrases.
 
-    * Call ElevenLabs (for Sir Henry) for TTS samples.
+    * Call ElevenLabs (for Sir Henry) for TTS samples and prep the dataset.
     ```
-    uv run python elevenlabs.py
+    uv run python tts_generator.py
     ``` 
 
-    * For a new custom voice, I need to add something to show the phrases and record the wav file. 
+    * For a new custom voice, I need to add something to show the phrases and record the wav files. 
 
-3. Make `metadata.csv`
-
-4. Check length, convert, etc. to make final dataset in `training`
+3. Fine-tune f5-tts:
+```
+python src/f5_tts/train/datasets/prepare_csv_wavs.py <absolute-path>/sir_henry/voice-dataset/sir_henry <absolute-path>/F5-TTS/data/sir_henry_pinyin
+```
